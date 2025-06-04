@@ -1,7 +1,7 @@
 import enum
-from typing import Literal, Optional
-from sqlalchemy import ForeignKey, BigInteger
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Literal, Optional, Union
+from sqlalchemy import BigInteger, String
+from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
 from sqlalchemy.dialects.postgresql import ENUM
 
 from db.database import Base, updated_attp
@@ -36,3 +36,13 @@ class UserRestrictionORM(Base):
     chat_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
     action_type: Mapped[Literal['WARN', 'MUTE', 'BAN', 'TOTAL_BAN']] = mapped_column(ENUM(ActionTypeEnum, name='action_type', create_type=False))
+
+class DistributionsORM(Base):
+    __tablename__ = 'distribution_table'
+
+    chat_id: Mapped[int] = mapped_column(BigInteger)
+    interval: Mapped[int]
+
+class ConfigORM(DeclarativeBase):
+    name: Mapped[str] = mapped_column(String, primary_key=True)
+    value: Mapped[Union[str, int]]
