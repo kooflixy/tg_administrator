@@ -42,7 +42,3 @@ class DistributionsORM(Base):
 
     chat_id: Mapped[int] = mapped_column(BigInteger)
     interval: Mapped[int]
-
-class ConfigORM(DeclarativeBase):
-    name: Mapped[str] = mapped_column(String, primary_key=True)
-    value: Mapped[Union[str, int]]
