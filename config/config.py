@@ -13,6 +13,7 @@ class Settings(BaseModel):
     DB_NAME: str = os.getenv("DB_NAME")
     
     DATABASE_URL_asyncpg: str = f'postgresql+asyncpg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+    DATABASE_URL_psycopg: str = f'postgresql+psycopg://{DB_USER}:{DB_PASS}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
 
     ADMIN_ID: int = int(os.getenv("ADMIN_ID"))
     TG_BOT_API_TOKEN: str = os.getenv("TG_BOT_API_TOKEN")

@@ -1,17 +1,21 @@
 import datetime
 from typing import Annotated
-from sqlalchemy import text
+from sqlalchemy import text, create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 from config.config import settings # должен быть импорт именно из config.config, иначе ImportError (circular import)
 
-database_url_asyncpg = f'postgresql+asyncpg://{settings.DB_USER}:{settings.DB_PASS}@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}'
 
-async_engine = create_async_engine(
-    url = database_url_asyncpg
+sync_engine = create_engine(
+    url = settings.DATABASE_URL_psycopg
 )
 
+async_engine = create_async_engine(
+    url = settings.DATABASE_URL_asyncpg
+)
+
+session_factory = sessionmaker(sync_engine)
 async_session_factory = async_sessionmaker(async_engine)
 
 
