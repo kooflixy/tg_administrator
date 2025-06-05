@@ -5,7 +5,7 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from config import settings
+from config.config import settings
 from db.models import ChatORM #noqa
 from db.database import Base
 

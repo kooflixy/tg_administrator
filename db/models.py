@@ -1,7 +1,7 @@
 import enum
-from typing import Literal, Optional, Union
-from sqlalchemy import BigInteger, String
-from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase
+from typing import Literal, Optional
+from sqlalchemy import BigInteger
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import ENUM
 
 from db.database import Base, updated_attp
