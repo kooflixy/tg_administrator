@@ -1,6 +1,6 @@
 {
     "captcha_text": "Привет, {user}! Нажми на кнопку, чтобы подтвердить, что ты не робот.",
-    "captcha_waitng": 70,
+    "captcha_waitng": 60,
     "max_warn_restriction": "MUTE",
     "max_watn_count": 3,
     "remove_system_messages_waiting": 30,

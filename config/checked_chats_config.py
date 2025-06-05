@@ -9,18 +9,24 @@ class CheckedChats:
             chat_list = session.query(ChatORM.chat_id).all()
             self.chat_list: list[int] = [chat[0] for chat in chat_list]
     
+    def is_checked(self, chat_id) -> bool:
+        return chat_id in self.chat_list
 
     async def add_chat(self, chat_id: int) -> None:
-        if chat_id in self.chat_list: return # нужно сделать исключение
+        if chat_id in self.chat_list:
+            raise Exception("Чат уже отслеживается")
+        
         async with async_session_factory() as session:
             await AsyncORM.insert_chat(session, chat_id)
             await session.commit()
         
         self.chat_list.append(chat_id)
     
-    
+
     async def remove_chat(self, chat_id: int) -> None:
-        if chat_id not in self.chat_list: return # нужно сделать исключение
+        if chat_id not in self.chat_list:
+            raise Exception("Чат не является отслеживаемым")
+
         async with async_session_factory() as session:
             await AsyncORM.remove_chat(session, chat_id)
             await session.commit()

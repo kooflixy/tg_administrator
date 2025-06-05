@@ -14,7 +14,7 @@ class ChangeableSettings(BaseModel):
     captcha_waitng: int = 60
 
     max_warn_restriction: Literal[ActionTypeEnum.MUTE, ActionTypeEnum.BAN] = ActionTypeEnum.MUTE
-    max_watn_count: int = 3
+    max_warn_count: int = 3
 
     remove_system_messages_waiting: int = 30
 
