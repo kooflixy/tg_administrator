@@ -2,7 +2,7 @@ from typing import Literal
 from pydantic import BaseModel, field_serializer, field_validator
 
 from db.data_manager import JSONManager
-from db.models import ActionTypeEnum
+from db.classes import ActionTypeEnum
 
 CHANGEABLE_SETTINGS_PATH = 'db/data/changeable_settings_data.json'
 

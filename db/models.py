@@ -5,12 +5,14 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import ENUM
 
 from db.database import Base, updated_attp
+from db.classes import ActionTypeEnum
 
 
 class ChatORM(Base):
     __tablename__ = 'chat_table'
 
-    chat_id: Mapped[int] = mapped_column(BigInteger)
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    name: Mapped[str]
 
 class ModeratorORM(Base):
     __tablename__ = 'moderator_table'
@@ -20,12 +22,6 @@ class ModeratorORM(Base):
 
     updated_at: Mapped[updated_attp]
     #я думаю потом сюда стоит добавить какие именно у модера есть права(бан, мут, варн)
-
-class ActionTypeEnum(enum.Enum):
-    WARN = 'WARN'
-    MUTE = 'MUTE'
-    BAN = 'BAN'
-    TOTAL_BAN = 'TOTAL_BAN'
 
 class UserRestrictionORM(Base):
     __tablename__ = 'user_restriction_table'

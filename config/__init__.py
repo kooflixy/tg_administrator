@@ -1,3 +1,2 @@
 from config.changeable_config import changeable_settings
 from config.config import settings
-from config.checked_chats_config import checked_chats
