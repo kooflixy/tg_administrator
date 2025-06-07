@@ -24,6 +24,14 @@ class AsyncORM:
         return chat_list
 
     @staticmethod
+    async def get_chat_id_list(session: AsyncSession) -> list[Optional[int]]:
+        query = (
+            select(ChatORM.id)
+        )
+        chat_list = (await session.execute(query)).scalars().all()
+        return chat_list
+
+    @staticmethod
     async def get_chat(session: AsyncSession, chat_id: int) -> Optional[ChatORM]:
         chat = await session.get(ChatORM, chat_id)
         return chat
