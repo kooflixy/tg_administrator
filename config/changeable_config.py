@@ -20,6 +20,8 @@ class ChangeableSettings(BaseModel):
 
     remove_ban_notifications: int = 120
 
+    max_chat_count_in_page: int = 5
+
     @field_validator('max_warn_restriction', mode='before')
     def validate_max_warn_restriction(v: str):
         return ActionTypeEnum._value2member_map_[v]
