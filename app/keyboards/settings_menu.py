@@ -7,6 +7,8 @@ class SettingsType:
 class SettingsTypeCD(CallbackData, prefix='setts_type'):
     type: str
 
+class SettingsListCD(CallbackData, prefix='setts'): ...
+
 class ChatListCD(CallbackData, prefix='chat_list'):
     page: int = 1
 
