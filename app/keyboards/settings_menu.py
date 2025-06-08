@@ -15,7 +15,7 @@ class ChatListCD(CallbackData, prefix='chat_list'):
 def settings_menu_ikb():
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text='📋Чаты', callback_data=ChatListCD(page=1).pack())]
+            [InlineKeyboardButton(text='📋Чаты', callback_data=ChatListCD().pack())]
         ]
     )
     return kb

@@ -5,6 +5,7 @@ import orjson
 
 
 class JSONManager:
+    '''Класс для управления JSON-файлами'''
     @staticmethod
     def get_json(path) -> dict:
         if os.path.exists(path):

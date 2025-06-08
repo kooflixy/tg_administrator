@@ -8,12 +8,14 @@ from config import changeable_settings
 class AsyncORM:
     @staticmethod
     async def get_chat_list(session: AsyncSession) -> list[ChatORM]:
+        '''Получение всех записей чатов из бд в формате ChatORM'''
         query = select(ChatORM)
         chat_list = (await session.execute(query)).scalars().all()
         return chat_list
 
     @staticmethod
-    async def get_chat_list_page(session: AsyncSession, page: int) -> Optional[list[ChatORM]]:
+    async def get_chat_list_page(session: AsyncSession, page: int) -> list[Optional[ChatORM]]:
+        '''Получение определенного количества чатов для страницы, отсортированных по времени создания в обратном порядке'''
         query = (
             select(ChatORM)
             .order_by(desc(ChatORM.created_at), desc(ChatORM.id))
@@ -25,6 +27,7 @@ class AsyncORM:
 
     @staticmethod
     async def get_chat_id_list(session: AsyncSession) -> list[Optional[int]]:
+        '''Получение списка '''
         query = (
             select(ChatORM.id)
         )

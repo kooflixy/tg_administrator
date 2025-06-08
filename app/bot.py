@@ -11,5 +11,4 @@ async def main():
         settings.chat_list.router
     )
     await bot.delete_webhook(drop_pending_updates=True)
-    print('start')
     await dp.start_polling(bot)

@@ -15,6 +15,7 @@ class ChatDetailsCD(CallbackData, prefix='chat_d'):
     page: int
 
 def chat_list_ikb(chat_list: list[ChatORM], page: int):
+    # Создание клавиатуры кнопок
     button_list = []
     button_list.append([InlineKeyboardButton(text='Добавить чат', callback_data=AddChatCD().pack())])
     for chat in chat_list:

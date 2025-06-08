@@ -4,7 +4,7 @@ from sqlalchemy import text, create_engine
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
-from config.config import settings # должен быть импорт именно из config.config, иначе ImportError (circular import)
+from config import settings # должен быть импорт именно из config.config, иначе ImportError (circular import)
 
 
 sync_engine = create_engine(
