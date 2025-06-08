@@ -1,6 +1,9 @@
+from logging import getLogger
 import os
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
+log = getLogger(__name__)
 
 load_dotenv()
 
@@ -22,3 +25,5 @@ class Settings(BaseModel):
     TG_BOT_API_TOKEN: str = os.getenv("TG_BOT_API_TOKEN")
 
 settings = Settings()
+
+log.info('Были получены настройки приложения из виртуальной среды')

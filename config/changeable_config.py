@@ -1,3 +1,4 @@
+from logging import getLogger
 from typing import Literal
 from pydantic import BaseModel, field_serializer, field_validator
 
@@ -6,6 +7,7 @@ from db.classes import ActionTypeEnum
 
 CHANGEABLE_SETTINGS_PATH = 'db/data/changeable_settings_data.json'
 
+log = getLogger(__name__)
 
 class ChangeableSettings(BaseModel):
     '''Настройки, которые могут меняться пользователем в течение программы
@@ -21,6 +23,9 @@ class ChangeableSettings(BaseModel):
     remove_ban_notifications: int = 120
 
     max_chat_count_in_page: int = 5
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}({self.__dict__})'
 
     def __setattr__(self, name, value):
         '''Сохранение новых настроек в CHANGEABLE_SETTINGS_PATH при каждом их изменении'''
@@ -41,3 +46,5 @@ class ChangeableSettings(BaseModel):
 
 data = JSONManager.get_json(CHANGEABLE_SETTINGS_PATH)
 changeable_settings = ChangeableSettings(**data)
+
+log.info('Были получены изменяемые настройки приложения %r', changeable_settings)

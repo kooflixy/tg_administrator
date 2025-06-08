@@ -1,14 +1,19 @@
-from aiogram.types import Message
+from typing import overload
+from aiogram.types import Message, CallbackQuery
 
+class name_in_log:
+    '''Класс для удобного создания имён для логов'''
 
-class UserForLogs:
-    '''Класс для удобного создания записи пользователя телеграма для логов'''
+    # Для пользователя
     @staticmethod
-    def from_msg(msg: Message) -> str:
-        info_list = []
-        info_list.append(f'username="{msg.from_user.full_name}"')
-        info_list.append(f'user_id="{msg.from_user.id}"')
-        if msg.chat.type != 'private':
-            info_list.append(f'{msg.chat.type}_name={msg.chat.title}')
-            info_list.append(f'{msg.chat.type}_id={msg.chat.id}')
-        return f'<TgUser {', '.join(info_list)}>'
+    @overload
+    def user(msg: Message) -> str: ...
+    
+    @staticmethod
+    @overload
+    def user(callback: CallbackQuery) -> str: ...
+
+    @staticmethod
+    def user(entity) -> str:
+        if isinstance(entity, Message): return f'TgUser(id={entity.from_user.id})'
+        return f'TgUser(id={entity.message.from_user.id})'
