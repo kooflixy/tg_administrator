@@ -22,17 +22,22 @@ class ChangeableSettings(BaseModel):
 
     max_chat_count_in_page: int = 5
 
+    def __setattr__(self, name, value):
+        '''Сохранение новых настроек в CHANGEABLE_SETTINGS_PATH при каждом их изменении'''
+        result = super().__setattr__(name, value)
+
+        JSONManager.insert_json(CHANGEABLE_SETTINGS_PATH, self.model_dump(mode='python'))
+        return result
+
     @field_validator('max_warn_restriction', mode='before')
     def validate_max_warn_restriction(v: str):
+        '''Переделывание max_warn_restriction из строки в ActionTypeEnum во время инициализации объекта'''
         return ActionTypeEnum._value2member_map_[v]
 
     @field_serializer('max_warn_restriction')
     def serialize_max_warn_restriction(self, max_warn_restriction: ActionTypeEnum, _info):
+        '''Переделывание max_warn_restriction из ActionTypeEnum в строку перед model_dump и сохранением'''
         return max_warn_restriction.value
-
-    def commit(self):
-        self.model_dump_json(indent=4)
-        JSONManager.insert_json(CHANGEABLE_SETTINGS_PATH, self.model_dump(mode='python'))
 
 data = JSONManager.get_json(CHANGEABLE_SETTINGS_PATH)
 changeable_settings = ChangeableSettings(**data)
