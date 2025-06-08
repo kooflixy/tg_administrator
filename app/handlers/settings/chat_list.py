@@ -9,6 +9,7 @@ from app.contrib.telthon_manager import TelethonManager
 from app.contrib.for_logging import UserForLogs
 from app.keyboards.settings_menu import ChatListCD
 from app.keyboards.settings.chat_list import ChatDetailsCD, RemoveChatCD, AddChatCD, chat_list_ikb, chat_details_ikb, removed_chat_details_ikb
+from app.handlers import user_commands
 from app.utils.states import AddChatForm
 from db.database import async_session_factory
 from db.queries.orm import AsyncORM
@@ -78,6 +79,7 @@ async def input_chat_url(message: Message, state: FSMContext):
         await session.commit()
     
     await message.answer(f'Чат <code>{chat.title}</code> успешно добавлен')
+    await user_commands.settings_cmd(message, None)
 
 
 @router.callback_query(ChatDetailsCD.filter())
