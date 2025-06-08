@@ -21,7 +21,7 @@ async def settings_cmd(message: Message, command: CommandObject):
     # Проверка, является ли пользователь главным админом
     if message.from_user.id != settings.ADMIN_ID: return
 
-    await message.answer(f'Вот твои настроечки, {message.from_user.full_name}', reply_markup=settings_menu_ikb())
+    await message.answer(f'Вот список настроек бота, {message.from_user.full_name}', reply_markup=settings_menu_ikb())
     log.info('%s получил настройки бота',
                 name_in_log.user(message))
 
@@ -30,7 +30,7 @@ async def settings_cmd_cq(callback: CallbackQuery):
     log.debug('%s запросил настройки бота через инлайн-кнопку',
                 name_in_log.user(callback))
     
-    await callback.message.edit_text(f'Вот твои настроечки, {callback.from_user.full_name}', reply_markup=settings_menu_ikb())
+    await callback.message.edit_text(f'Вот список настроек бота, {callback.from_user.full_name}', reply_markup=settings_menu_ikb())
 
     log.info('%s получил настройки бота, запрошенные через инлайн-кнопку',
                 name_in_log.user(callback))
