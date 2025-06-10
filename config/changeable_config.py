@@ -12,8 +12,11 @@ log = getLogger(__name__)
 class ChangeableSettings(BaseModel):
     '''Настройки, которые могут меняться пользователем в течение программы
     После каждого изменения следует сохранять изменения в CHANGEABLE_SETTINGS_PATH с помощью функции ChangeableSettings.commit()'''
+    captcha_status: bool = True
     captcha_text: str = "Привет, {user}! Нажми на кнопку, чтобы подтвердить, что ты не робот."
+    captcha_button_text: str = "Нажми на  меня!"
     captcha_waitng: int = 60
+    change_of_captcha_waiting: int = 10
 
     max_warn_restriction: Literal[ActionTypeEnum.MUTE, ActionTypeEnum.BAN] = ActionTypeEnum.MUTE
     max_warn_count: int = 3

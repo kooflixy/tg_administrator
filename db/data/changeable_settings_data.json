@@ -1,9 +1,0 @@
-{
-    "captcha_text": "Привет, {user}! Нажми на кнопку, чтобы подтвердить, что ты не робот.",
-    "captcha_waitng": 10,
-    "max_warn_restriction": "MUTE",
-    "max_warn_count": 3,
-    "remove_system_messages_waiting": 30,
-    "remove_ban_notifications": 120,
-    "max_chat_count_in_page": 5
-}

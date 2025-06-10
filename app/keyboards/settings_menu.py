@@ -2,7 +2,7 @@ from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 class SettingsType:
-    CHATS = 'chats'
+    CAPTCHA = 'captcha'
 
 class SettingsTypeCD(CallbackData, prefix='setts_type'):
     type: str
@@ -15,7 +15,8 @@ class ChatListCD(CallbackData, prefix='chat_list'):
 def settings_menu_ikb():
     kb = InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(text='📋Чаты', callback_data=ChatListCD().pack())]
+            [InlineKeyboardButton(text='📋Чаты', callback_data=ChatListCD().pack())],
+            [InlineKeyboardButton(text='✅Капча', callback_data=SettingsTypeCD(type=SettingsType.CAPTCHA).pack())],
         ]
     )
     return kb
