@@ -15,6 +15,7 @@ router = Router()
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def react_new_member(event: ChatMemberUpdated):
+    # Проверка группы на отслеживаемость
     async with async_session_factory() as session:
         chat_id_list = await AsyncORM.get_chat_id_list(session)
         chat_id = int(str(event.chat.id)[4:])

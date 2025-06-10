@@ -1,8 +1,7 @@
 import asyncio
 from logging import getLogger
-from aiogram import F, Router
-from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
-from aiogram.types import Message, ChatMemberUpdated, CallbackQuery
+from aiogram import Router
+from aiogram.types import ChatMemberUpdated, CallbackQuery
 
 from app.bot_obj import bot
 from app.contrib.for_logging import name_in_log
@@ -31,6 +30,13 @@ class NotPassedCaptchaUsers:
 not_passed_captcha_users = NotPassedCaptchaUsers()
 
 async def captcha_check(event: ChatMemberUpdated):
+    '''Функция, отвечающая за капчу
+    При её вызове пользователю отправляется приветствие с просьбой пройти капчу в виде кнопки
+    1) Пользователь добавляется в список еще не прошедших капчу - not_passed_captcha_users
+    2) В этой же функции стартует асинхронный sleep на выбранное время
+    3) При нажатии на кнопку капчи пользователь удаляется из списка not_passed_captcha_users с помощью функции pass_captcha(), описанной ниже
+    4) sleep оканчивается
+    5) С помощью not_passed_captcha_users проверяется, прошел ли пользователь капчу'''
     new_member = event.new_chat_member.user
     if new_member.is_bot: return
 
@@ -45,9 +51,10 @@ async def captcha_check(event: ChatMemberUpdated):
     log.debug('%s было предложено пройти капчу',
                 name_in_log.user(event))
 
-
+    # Ждём отведенный срок
     await asyncio.sleep(changeable_settings.captcha_waitng)
 
+    # Проверка, успел ли пользователь нажать на кнопку капчи. Если нет, то кикаем
     if not not_passed_captcha_users.is_captha_passed(new_member.id):
         tag_user_text = TextMarkup.tag_user(user_full_name=new_member.full_name, user_id=new_member.id)
 
@@ -65,6 +72,7 @@ async def captcha_check(event: ChatMemberUpdated):
 
 @router.callback_query(CaptchaPassedCD.filter())
 async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
+    '''Удаляет пользователя из not_passed_captcha_users, из чего после следует, что он прошел капчу'''
     if callback.from_user.id != callback_data.user_id:
         await callback.answer('Не твоё не трогай')
         return
