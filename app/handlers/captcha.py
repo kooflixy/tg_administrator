@@ -16,7 +16,7 @@ router = Router()
 class NotPassedCaptchaUsers:
     user_list = []
 
-    def add(self, user_id: int):
+    def append(self, user_id: int):
         if user_id not in self.user_list:
             self.user_list.append(user_id)
     
@@ -40,7 +40,7 @@ async def captcha_check(event: ChatMemberUpdated):
     new_member = event.new_chat_member.user
     if new_member.is_bot: return
 
-    not_passed_captcha_users.add(new_member.id)
+    not_passed_captcha_users.append(new_member.id)
 
     # Отвечаем пользователю, сразу же добавляя кнопку капчи
     captcha_msg = await event.answer(
