@@ -62,8 +62,11 @@ async def captcha_check(event: ChatMemberUpdated):
         await bot.ban_chat_member(event.chat.id, new_member.id)
         await bot.unban_chat_member(event.chat.id, new_member.id)
 
-        await event.answer(f'{tag_user_text} не прошел капчу, за что был кикнут', parse_mode='Markdown')
-        await bot.delete_message(chat_id=event.chat.id, message_id=captcha_msg.message_id)
+        captcha_not_passed_message = await event.answer(f'{tag_user_text} не прошел капчу, за что был кикнут', parse_mode='Markdown')
+        await bot.delete_message(chat_id=event.chat.id, message_id=captcha_msg.message_id) # Удаляем сообщение с капчой
+        
+        await asyncio.sleep(10)
+        await bot.delete_message(chat_id=event.chat.id, message_id=captcha_not_passed_message.message_id) # Удаляем сообщение о непрохождении капчи
 
         not_passed_captcha_users.remove(new_member.id)
         log.info('%s не прошел капчу',
@@ -80,8 +83,12 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     tag_user_text = TextMarkup.tag_user(callback.from_user.full_name, callback.from_user.id)
 
     not_passed_captcha_users.remove(callback_data.user_id)
-    await callback.message.answer(f'{tag_user_text}, добро пожаловать!', parse_mode='Markdown')
+    welcome_message = await callback.message.answer(f'{tag_user_text}, добро пожаловать!', parse_mode='Markdown')
     await bot.delete_message(chat_id=callback.message.chat.id, message_id=callback_data.captcha_msg_id) # Удаляем сообщение с капчой
+
+    await asyncio.sleep(10)
+
+    await bot.delete_message(chat_id=welcome_message.chat.id, message_id=welcome_message.message_id) # Удаляем сообщение с добро пожаловать!
 
     log.info('%s успешно прошел капчу',
                 name_in_log.user(callback))
