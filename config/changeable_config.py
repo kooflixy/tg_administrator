@@ -25,7 +25,7 @@ class ChangeableSettings(BaseModel):
 
     remove_ban_notifications: int = 120
 
-    max_chat_count_in_page: int = 5
+    max_count_in_page: int = 5
 
     def __repr__(self):
         return f'{self.__class__.__name__}({self.__dict__})'

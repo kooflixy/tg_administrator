@@ -27,11 +27,11 @@ async def get_chat_list(callback: CallbackQuery, callback_data: ChatListCD):
     # Проверка на нулевую страницу
     if not callback_data.page:
         await callback.answer('Это первая страница :(')
-        log.info('%s запросил нулевую страницу', 
+        log.info('%s запросил нулевую страницу списка чатов', 
                     name_in_log.user(callback))
         return
 
-    # Получение списка страниц на странице
+    # Получение списка чатов для страницы
     async with async_session_factory() as session:
         chat_list = await AsyncORM.get_chat_list_page(session, callback_data.page)
     

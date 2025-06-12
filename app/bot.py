@@ -1,8 +1,7 @@
 from aiogram import Dispatcher
 
 from app.bot_obj import bot
-from app.handlers import user_commands, delete_sys_messages, captcha
-from app.handlers import settings
+from app.handlers import user_commands, delete_sys_messages, captcha, settings
 
 
 async def main():
@@ -13,6 +12,7 @@ async def main():
         captcha.router,
 
         settings.chat_list.router,
+        settings.moderator.router,
         settings.captcha.router,
     )
     await bot.delete_webhook(drop_pending_updates=True)

@@ -1,1 +1,1 @@
-from app.handlers.settings import chat_list, captcha
+from app.handlers.settings import chat_list, captcha, moderator

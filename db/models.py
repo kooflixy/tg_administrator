@@ -1,27 +1,40 @@
 import enum
-from typing import Literal, Optional
-from sqlalchemy import BigInteger
-from sqlalchemy.orm import Mapped, mapped_column
+from typing import Annotated, Literal, Optional
+from sqlalchemy import BigInteger, Boolean, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import ENUM
 
 from db.database import Base, updated_attp
 from db.classes import ActionTypeEnum
 
+permission_tp = Annotated[bool, mapped_column(default=False)]
 
-class ChatORM(Base):
-    __tablename__ = 'chat_table'
-
+class Adm:
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str]
 
-class ModeratorORM(Base):
+class ChatORM(Adm, Base):
+    __tablename__ = 'chat_table'
+
+class ModeratorORM(Adm, Base):
     __tablename__ = 'moderator_table'
-    
-    user_id: Mapped[int] = mapped_column(BigInteger)
+
+    chats: Mapped[list["LnkChatModeratorORM"]] = relationship(lazy='joined')
+
+class LnkChatModeratorORM(Base):
+    __tablename__ = 'lnk_chat_moderator_table'
+
     chat_id: Mapped[int] = mapped_column(BigInteger)
+    moderator_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('moderator_table.id'))
+
+    # Права
+    ba_perm: Mapped[permission_tp]
+    ban_perm: Mapped[permission_tp]
+    kick_perm: Mapped[permission_tp]
+    mute_perm: Mapped[permission_tp]
+    warn_perm: Mapped[permission_tp]
 
     updated_at: Mapped[updated_attp]
-    #я думаю потом сюда стоит добавить какие именно у модера есть права(бан, мут, варн)
 
 class UserRestrictionORM(Base):
     __tablename__ = 'user_restriction_table'

@@ -16,6 +16,5 @@ class TelethonManager:
         await client.start(bot_token=settings.TG_BOT_API_TOKEN)
         res =  await client.get_entity(entity)
 
-        print(res)
         log.debug('Были получены данные о телеграм чате через telethon url: %s', entity)
         return res
