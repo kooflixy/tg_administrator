@@ -16,6 +16,8 @@ class Adm:
 class ChatORM(Adm, Base):
     __tablename__ = 'chat_table'
 
+    moderators: Mapped[list["LnkChatModeratorORM"]] = relationship(lazy='joined')
+
 class ModeratorORM(Adm, Base):
     __tablename__ = 'moderator_table'
 
@@ -24,8 +26,10 @@ class ModeratorORM(Adm, Base):
 class LnkChatModeratorORM(Base):
     __tablename__ = 'lnk_chat_moderator_table'
 
-    chat_id: Mapped[int] = mapped_column(BigInteger)
+    chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('chat_table.id'))
+    chat: Mapped["ChatORM"] = relationship(back_populates='moderators')
     moderator_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('moderator_table.id'))
+    moderator: Mapped["ModeratorORM"] = relationship(back_populates='chats')
 
     # Права
     ba_perm: Mapped[permission_tp]

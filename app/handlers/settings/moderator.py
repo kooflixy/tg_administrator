@@ -5,11 +5,12 @@ from aiogram.filters import StateFilter
 from aiogram.fsm.context import FSMContext
 from telethon import types
 
+from app.contrib import checkers
 from app.contrib.telthon_manager import TelethonManager
 from app.contrib.text_markup import TextMarkup
 from app.contrib.for_logging import name_in_log
 from app.keyboards.settings_menu import ModeratorListCD
-from app.keyboards.settings.moderator import ModeratorDetailsCD, RemoveModeratorCD, AddModeratorCD, moderator_list_ikb
+from app.keyboards.settings.moderator import AddModeratorChatCD, AddModeratorChatListCD, ChangeModeratorChatPermissionCD, ModeratorChatDetailsCD, ModeratorDetailsCD, RemoveModeratorCD, AddModeratorCD, ModeratorChatsListCD, add_moderator_chat_list_ikb, moderator_list_ikb, moderator_details_ikb, moderator_chat_list_ikb, moderator_permissions_ikb
 from app.handlers import user_commands
 from app.utils.states import AddModeratorForm
 from db.database import async_session_factory
@@ -37,12 +38,11 @@ async def get_moderator_list(callback: CallbackQuery, callback_data: ModeratorLi
         chat_list = await AsyncORM.get_moderator_list_page(session, callback_data.page)
     
     # Проверка на последнюю страницу, если страница не первая
-    if callback_data.page != 1:
-        if not chat_list: 
-            await callback.answer('Это последняя страница :(')
-            log.info('%s запросил следующую страницу списка модераторов, находясь на последней', 
-                        name_in_log.user(callback))
-            return
+    if checkers.is_page_exists(page=callback_data.page, lst=chat_list):
+        await callback.answer('Это последняя страница :(')
+        log.info('%s запросил следующую страницу списка модераторов, находясь на последней', 
+                    name_in_log.user(callback))
+        return
     
     await callback.message.edit_text('Список модераторов :', reply_markup=moderator_list_ikb(chat_list, callback_data.page))
     log.info('%s получил %s страницу списка модераторов', 
@@ -50,7 +50,7 @@ async def get_moderator_list(callback: CallbackQuery, callback_data: ModeratorLi
 
 
 @router.callback_query(AddModeratorCD.filter())
-async def add_chat(callback: CallbackQuery, callback_data: AddModeratorCD, state: FSMContext):
+async def add_moderator(callback: CallbackQuery, callback_data: AddModeratorCD, state: FSMContext):
     '''Реакция на кнопку "Добавить модератора" в списке модераторов'''
     log.debug('%s нажал на кнопку "Добавить модератора"', 
                 name_in_log.user(callback))
@@ -107,3 +107,133 @@ async def input_moderator_username(message: Message, state: FSMContext):
                 name_in_log.user(message), message.text)
 
     await user_commands.settings_cmd(message, None)
+
+
+@router.callback_query(ModeratorDetailsCD.filter())
+async def get_moderator_details(callback: CallbackQuery, callback_data: ModeratorDetailsCD):
+    async with async_session_factory() as session:
+        moderator = await AsyncORM.get_moderator(session, callback_data.moderator_id)
+        await callback.message.edit_text(
+            text=
+f'''Имя: {moderator.name}
+ID: {moderator.id}
+[Ссылка](tg://user?id={moderator.id})
+''',
+            parse_mode='Markdown',
+            reply_markup=moderator_details_ikb(callback_data.moderator_id, 1)
+        )
+
+
+@router.callback_query(ModeratorChatsListCD.filter())
+async def get_moderator_chat_list(callback: CallbackQuery, callback_data: ModeratorChatsListCD):
+    '''Инлайн-клавиатура списка чатов в настройках'''
+    log.debug('%s запросил %s страницу списка чатов', 
+                name_in_log.user(callback), callback_data.page)
+
+    # Проверка на нулевую страницу
+    if not callback_data.page:
+        await callback.answer('Это первая страница :(')
+        log.info('%s запросил нулевую страницу списка чатов', 
+                    name_in_log.user(callback))
+        return
+
+    # Получение списка чатов для страницы
+    async with async_session_factory() as session:
+        chat_list = await AsyncORM.get_moderator_chat_list_page(session, callback_data.page, callback_data.moderator_id)
+
+    # Проверка на последнюю страницу, если страница не первая
+    if checkers.is_page_exists(page=callback_data.page, lst=chat_list):
+        await callback.answer('Это последняя страница :(')
+        log.info('%s запросил следующую страницу списка чатов, находясь на последней', 
+                    name_in_log.user(callback))
+        return
+    
+    await callback.message.edit_text('Список модерируемых чатов:', reply_markup=moderator_chat_list_ikb(chat_list, callback_data.page, callback_data.moderator_id))
+    log.info('%s получил %s страницу списка чатов', 
+                name_in_log.user(callback), callback_data.page)
+
+
+@router.callback_query(AddModeratorChatListCD.filter())
+async def get_add_moderator_chat_list(callback: CallbackQuery, callback_data: AddModeratorChatListCD):
+    '''Инлайн-клавиатура списка чатов в настройках'''
+    log.debug('%s запросил %s страницу списка чатов', 
+                name_in_log.user(callback), callback_data.page)
+
+    # Проверка на нулевую страницу
+    if not callback_data.page:
+        await callback.answer('Это первая страница :(')
+        log.info('%s запросил нулевую страницу списка чатов', 
+                    name_in_log.user(callback))
+        return
+
+    # Получение списка чатов для страницы
+    async with async_session_factory() as session:
+        chat_list = await AsyncORM.get_add_moderator_chat_list_page(session, callback_data.page, callback_data.moderator_id)
+    
+    # Проверка на последнюю страницу, если страница не первая
+    if checkers.is_page_exists(page=callback_data.page, lst=chat_list):
+        await callback.answer('Это последняя страница :(')
+        log.info('%s запросил следующую страницу списка чатов, находясь на последней', 
+                    name_in_log.user(callback))
+        return
+    
+    await callback.message.edit_text('Нажмите на чат, который хотите добавить:', reply_markup=add_moderator_chat_list_ikb(chat_list, callback_data.page, callback_data.moderator_id))
+    log.info('%s получил %s страницу списка чатов', 
+                name_in_log.user(callback), callback_data.page)
+
+@router.callback_query(AddModeratorChatCD.filter())
+async def add_moderator_chat(callback: CallbackQuery, callback_data: AddModeratorChatCD):
+    log.info('%s пытается добавить модератора',
+                name_in_log.user(callback))
+    
+    # Проверка, является ли пользователь модератором
+    async with async_session_factory() as session:
+        if not await AsyncORM.get_moderator(session, callback_data.moderator_id):
+            return
+        
+        if await AsyncORM.get_moderator_chat(session, moderator_id=callback_data.moderator_id, chat_id=callback_data.chat_id):
+            return
+        
+        await AsyncORM.insert_moderator_chat(session, moderator_id=callback_data.moderator_id, chat_id=callback_data.chat_id)
+
+        await session.commit()
+    
+    await callback.answer('Чат добавлен в модерируемые')
+
+    await get_add_moderator_chat_list(callback, AddModeratorChatListCD(moderator_id=callback_data.moderator_id, page=callback_data.page))
+
+
+@router.callback_query(ModeratorChatDetailsCD.filter())
+async def get_moderator_chat_details(callback: CallbackQuery, callback_data: ModeratorChatDetailsCD):
+    async with async_session_factory() as session:
+        moderator_chat = await AsyncORM.get_moderator_chat(session, callback_data.moderator_id, chat_id=callback_data.chat_id)
+
+    if not moderator_chat: return
+
+    await callback.message.edit_text(
+        text=
+f'''
+Модератор: {TextMarkup.tag_user(callback.from_user.full_name, callback.from_user.id)}
+Чат: "{moderator_chat.chat.name}"
+Имеет такие возможности:
+''',
+        reply_markup=moderator_permissions_ikb(moderator_chat),
+        parse_mode='Markdown'
+    )
+
+@router.callback_query(ChangeModeratorChatPermissionCD.filter())
+async def change_moderator_chat_permission(callback: CallbackQuery, callback_data: ChangeModeratorChatPermissionCD):
+    async with async_session_factory() as session:
+        moderator_chat = await AsyncORM.get_moderator_chat(session, moderator_id=callback_data.moderator_id, chat_id=callback_data.chat_id)
+        if not moderator_chat: return
+        
+        await AsyncORM.change_moderator_chat_permission(session, moderator_id=callback_data.moderator_id, chat_id=callback_data.chat_id,
+                                                            perm_name=callback_data.perm_name)
+        
+        await session.commit()
+        
+        moderator_chat = await AsyncORM.get_moderator_chat(session, moderator_id=callback_data.moderator_id, chat_id=callback_data.chat_id)
+        
+        await callback.message.edit_reply_markup(reply_markup=moderator_permissions_ikb(moderator_chat))
+
+    

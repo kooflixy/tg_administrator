@@ -7,6 +7,7 @@ from telethon import types
 
 from app.contrib.telthon_manager import TelethonManager
 from app.contrib.for_logging import name_in_log
+from app.contrib import checkers
 from app.keyboards.settings_menu import ChatListCD
 from app.keyboards.settings.chat_list import ChatDetailsCD, RemoveChatCD, AddChatCD, chat_list_ikb, chat_details_ikb, removed_chat_details_ikb
 from app.handlers import user_commands
@@ -36,12 +37,11 @@ async def get_chat_list(callback: CallbackQuery, callback_data: ChatListCD):
         chat_list = await AsyncORM.get_chat_list_page(session, callback_data.page)
     
     # Проверка на последнюю страницу, если страница не первая
-    if callback_data.page != 1:
-        if not chat_list: 
-            await callback.answer('Это последняя страница :(')
-            log.info('%s запросил следующую страницу списка чатов, находясь на последней', 
-                        name_in_log.user(callback))
-            return
+    if checkers.is_page_exists(page=callback_data.page, lst=chat_list):
+        await callback.answer('Это последняя страница :(')
+        log.info('%s запросил следующую страницу списка чатов, находясь на последней', 
+                    name_in_log.user(callback))
+        return
     
     await callback.message.edit_text('Список отслеживаемых чатов:', reply_markup=chat_list_ikb(chat_list, callback_data.page))
     log.info('%s получил %s страницу списка чатов', 
@@ -145,6 +145,7 @@ async def remove_chat(callback: CallbackQuery, callback_data: RemoveChatCD):
         await session.commit()
     
     await callback.answer('Чат больше не отслеживается')
-    await callback.message.edit_reply_markup(reply_markup=removed_chat_details_ikb(callback_data.page)) # Удаление инлайн-кнопки "Удалить" в деталях чата, т.к. чат уже удален
+
+    await get_chat_list(callback, ChatListCD(callback_data.page))
     log.info('%s удалил чат из отслеживаемых chat_id: %s',
                 name_in_log.user(callback), callback_data.chat_id)
