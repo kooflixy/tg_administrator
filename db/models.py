@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 import enum
 from typing import Annotated, Literal, Optional
 from sqlalchemy import BigInteger, Boolean, ForeignKey
@@ -16,15 +17,15 @@ class Adm:
 class ChatORM(Adm, Base):
     __tablename__ = 'chat_table'
 
-    moderators: Mapped[list["LnkChatModeratorORM"]] = relationship(lazy='joined')
+    moderators: Mapped[list["ModeratorChatORM"]] = relationship(lazy='joined')
 
 class ModeratorORM(Adm, Base):
     __tablename__ = 'moderator_table'
 
-    chats: Mapped[list["LnkChatModeratorORM"]] = relationship(lazy='joined')
+    chats: Mapped[list["ModeratorChatORM"]] = relationship(lazy='joined')
 
-class LnkChatModeratorORM(Base):
-    __tablename__ = 'lnk_chat_moderator_table'
+class ModeratorChatORM(Base):
+    __tablename__ = 'moderator_chat_table'
 
     chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('chat_table.id'))
     chat: Mapped["ChatORM"] = relationship(back_populates='moderators')
@@ -39,6 +40,8 @@ class LnkChatModeratorORM(Base):
     warn_perm: Mapped[permission_tp]
 
     updated_at: Mapped[updated_attp]
+
+    repr_cols = ('id')
 
 class UserRestrictionORM(Base):
     __tablename__ = 'user_restriction_table'

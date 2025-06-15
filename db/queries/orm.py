@@ -1,9 +1,14 @@
+'''Не используется'''
+
+
+
 from typing import Optional
-from sqlalchemy import and_, delete, select, desc, text, union
+from sqlalchemy import and_, delete, func, select, desc, text, union
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import ChatORM, ModeratorORM, LnkChatModeratorORM
+from db.database import Base
 from config import changeable_settings
 
 class AsyncORM:
@@ -91,8 +96,10 @@ class AsyncORM:
         new_moderator = ModeratorORM(id=user_id, name=user_full_name)
         session.add(new_moderator)
 
-        await session.commit()
-
+    @staticmethod
+    async def remove_moderator(session: AsyncSession, user_id: int) -> None:
+        await session.execute(delete(ModeratorORM).filter(ModeratorORM.id==user_id))
+    
     @staticmethod
     async def get_moderator_chat_list_page(session: AsyncSession, page: int, moderator_id: int) -> list[Optional[LnkChatModeratorORM]]:
         '''Получение определенного количества модерируемых чатов для страницы, отсортированных по времени создания в обратном порядке'''
@@ -140,11 +147,24 @@ class AsyncORM:
         session.add(moderator_chat)
     
     @staticmethod
+    async def remove_moderator_chat(session: AsyncSession, moderator_id: int, chat_id: int) -> None:
+        await session.execute(delete(LnkChatModeratorORM).filter(LnkChatModeratorORM.moderator_id==moderator_id, LnkChatModeratorORM.chat_id==chat_id))
+
+    @staticmethod
     async def change_moderator_chat_permission(session: AsyncSession, moderator_id: int, chat_id: int, perm_name: str) -> None:
         query = text(
-f'''UPDATE {LnkChatModeratorORM.__tablename__}
-SET {perm_name} = NOT {perm_name}
-WHERE moderator_id={moderator_id} and chat_id={chat_id}'''
+            f'''UPDATE {LnkChatModeratorORM.__tablename__}
+            SET {perm_name} = NOT {perm_name}
+            WHERE moderator_id={moderator_id} and chat_id={chat_id}'''
         )
 
         await session.execute(query)
+
+    @staticmethod
+    async def is_last_page_orm(session: AsyncSession, model: Base, page: int) -> bool:
+        '''Проверка, является ли страница последней'''
+        query = text(f'SELECT COUNT(*) FROM {model.__tablename__}')
+        records_num = (await session.execute(query)).scalar()
+        if records_num-changeable_settings.max_count_in_page*page<=0:
+            return True
+        return False
