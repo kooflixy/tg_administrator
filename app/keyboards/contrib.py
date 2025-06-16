@@ -17,8 +17,11 @@ class BackPageArg:
     back_page: int = 1
 
 @dataclass
-class ModerChatIdCDArg:
+class ChatIDArg:
     chat_id: int
+
+@dataclass
+class ModerChatIdCDArg(ChatIDArg): ...
 
 
 def back_ibtn(callback_data) -> InlineKeyboardBuilder:

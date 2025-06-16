@@ -35,7 +35,7 @@ class ChangeModeratorChatPermissionCD(CallbackData, ModerIdArg, ModerChatIdCDArg
 def moderator_list_ikb(moderator_list: list[ModeratorORM], page: int, is_last_page: bool):
     '''Создание инлайн-клавиатуры со списком модераторов
     Кнопки: добавление модератора; список модераторов, пагинация; назад(в меню настроек)
-    Появляется при: нажатии на список модерторов в настройках; пагинации списка модераторов; возвращении назад'''
+    Появляется при: нажатии на список модераторов в настройках; пагинации списка модераторов; возвращении назад'''
 
     builder = InlineKeyboardBuilder()
     builder.button(text='➕Добавить модератора', callback_data=AddModeratorCD().pack())

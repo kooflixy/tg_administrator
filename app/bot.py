@@ -11,12 +11,16 @@ async def main():
         delete_sys_messages.router, 
         captcha.router,
 
-        # settings.chat_list.router,
         pagination.router,
+
+        settings.chat_settings.chat.router,
+        settings.chat_settings.adding_chat.router,
+
         settings.moderator_settings.moderator.router,
         settings.moderator_settings.adding_moderator.router,
         settings.moderator_settings.moderator_chat.router,
         settings.moderator_settings.adding_moderator_chat.router,
+
         settings.captcha.router,
     )
     await bot.delete_webhook(drop_pending_updates=True)
