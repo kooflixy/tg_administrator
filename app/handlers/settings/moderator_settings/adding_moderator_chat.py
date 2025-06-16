@@ -17,7 +17,7 @@ router = Router()
 
 @router.callback_query(AddModeratorChatListCD.filter())
 async def get_add_moderator_chat_list(callback: CallbackQuery, callback_data: AddModeratorChatListCD):
-    '''Инлайн-клавиатура списка чатов в настройках'''
+    '''Отображение списка чатов, возможных для добавления в модерируемые модератора'''
     log.debug('%s запросил страницу возможных для добавления в модерируемые чатов page=%s, moderator_id=%s', name_in_log.user(callback), callback_data.cur_page, callback_data.moderator_id)
 
     # Получение списка чатов для страницы
@@ -36,6 +36,7 @@ async def get_add_moderator_chat_list(callback: CallbackQuery, callback_data: Ad
 
 @router.callback_query(AddModeratorChatCD.filter())
 async def add_moderator_chat(callback: CallbackQuery, callback_data: AddModeratorChatCD):
+    '''Добавление чата в модерирумые для модератора'''
     log.debug('%s пытается добавить чат в модерируемые к модератору moderator_id=%s, chat_is=%s', name_in_log.user(callback), callback_data.moderator_id, callback_data.chat_id)
     
     try:

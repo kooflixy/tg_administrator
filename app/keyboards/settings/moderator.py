@@ -33,10 +33,12 @@ class ChangeModeratorChatPermissionCD(CallbackData, ModerIdArg, ModerChatIdCDArg
 
 
 def moderator_list_ikb(moderator_list: list[ModeratorORM], page: int, is_last_page: bool):
-    # Создание клавиатуры кнопок
+    '''Создание инлайн-клавиатуры со списком модераторов
+    Кнопки: добавление модератора; список модераторов, пагинация; назад(в меню настроек)
+    Появляется при: нажатии на список модерторов в настройках; пагинации списка модераторов; возвращении назад'''
 
     builder = InlineKeyboardBuilder()
-    builder.button(text='Добавить модератора', callback_data=AddModeratorCD().pack())
+    builder.button(text='➕Добавить модератора', callback_data=AddModeratorCD().pack())
     for moderator in moderator_list:
         builder.button(text=moderator.name, callback_data=ModeratorDetailsCD(moderator_id=moderator.id, back_page=page).pack())
     builder.attach(get_paginator_ikb(ModeratorListCD, cur_page=page, is_last_page=is_last_page))
@@ -46,6 +48,10 @@ def moderator_list_ikb(moderator_list: list[ModeratorORM], page: int, is_last_pa
     return builder.as_markup()
 
 def moderator_details_ikb(moderator_id: int, back_page: int = 1):
+    '''Создание инлайн-клавиатуры с деталями определенного модератора
+    Кнопки: просмотр списка модерируемых чатов; разжалование, назад(в список модераторов)
+    Появляется при: нажатии на модератора в списке модераторов; возвращении назад'''
+
     builder = InlineKeyboardBuilder()
     builder.button(text='Чаты', callback_data=ModeratorChatListCD(cur_page=1, moderator_id=moderator_id).pack())
     builder.button(text='❌Разжаловать', callback_data=RemoveModeratorCD(moderator_id=moderator_id, back_page=back_page).pack())
@@ -56,10 +62,12 @@ def moderator_details_ikb(moderator_id: int, back_page: int = 1):
 
 
 def moderator_chat_list_ikb(chat_list: list[ModeratorChatORM], page: int, moderator_id: int, is_last_page: bool):
-    # Создание клавиатуры кнопок
+    '''Создание инлайн-клавиатуры со списокм модерируемых чатов выбранного модератора
+    Кнопки: добавить модерируемый чат; список модерируемых чатов модератора; назад(в детали модератора)
+    Появляется при: нажатии на просмотр списка модерируемых чатов; пагинации списка модерируемых чатов; возвращении назад'''
     
     builder = InlineKeyboardBuilder()
-    builder.button(text='Добавить чат', callback_data=AddModeratorChatListCD(cur_page=1, back_page=page, moderator_id=moderator_id).pack())
+    builder.button(text='➕Добавить чат', callback_data=AddModeratorChatListCD(cur_page=1, back_page=page, moderator_id=moderator_id).pack())
     for chat in chat_list:
         builder.button(text=chat.chat.name, callback_data=ModeratorChatDetailsCD(chat_id=chat.chat_id, back_page=page, moderator_id=chat.moderator_id).pack())
     builder.attach(get_paginator_ikb(ModeratorChatListCD, cur_page=page, moderator_id=moderator_id, is_last_page=is_last_page))
@@ -69,7 +77,9 @@ def moderator_chat_list_ikb(chat_list: list[ModeratorChatORM], page: int, modera
     return builder.as_markup()
 
 def add_moderator_chat_list_ikb(chat_list: list[ChatORM], back_page: int, page: int, moderator_id: int, is_last_page: bool):
-    # Создание клавиатуры кнопок
+    '''Создание инлайн-клавиатуры со списокм чатов, возможных для добавления в модерируемые определенному модератору
+    Кнопки: список чатов, возможных для добавления в модерируемые; назад(в список модерируемых чатов модератора)
+    Появляется при: нажатии на кнопку "Добавить чат" в списке модерируемых чатов модератора'''
     
     builder = InlineKeyboardBuilder()
     for chat in chat_list:
@@ -81,6 +91,9 @@ def add_moderator_chat_list_ikb(chat_list: list[ChatORM], back_page: int, page: 
     return builder.as_markup()
 
 def moderator_chat_details_ikb(moderator: ModeratorChatORM, back_page: int):
+    '''Создание инлайн-клавиатуры с деталями модерируемого чата модератора
+    Кнопки: права модератора(можно изменить при нажатии); удалить чат из модерируемых этого модератора; назад(в список модерируемых чатов модератора)
+    Появляется при: нажатии на модерируемый чат в списке модерируемых чатов'''
 
     builder = InlineKeyboardBuilder()
     for perm_ru_name, perm_db_name, is_perm_exists in zip(['Бан по сети чатов', 'Бан', 'Кик', 'Мут', 'Варн'],

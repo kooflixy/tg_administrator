@@ -16,7 +16,7 @@ router = Router()
 
 @router.callback_query(ModeratorListCD.filter())
 async def get_moderator_list(callback: CallbackQuery, callback_data: ModeratorListCD):
-    '''Инлайн-клавиатура списка модераторов в настройках'''
+    '''Отображение списка модераторов'''
     log.debug('%s запросил %s страницу списка модераторов', name_in_log.user(callback), callback_data.cur_page)
     
     # Получение списка модеров
@@ -35,6 +35,7 @@ async def get_moderator_list(callback: CallbackQuery, callback_data: ModeratorLi
 
 @router.callback_query(ModeratorDetailsCD.filter())
 async def get_moderator_details(callback: CallbackQuery, callback_data: ModeratorDetailsCD):
+    '''Отображение деталей модератора'''
     log.debug('%s запросил детали модератора moderator_id=%s', name_in_log.user(callback), callback_data.moderator_id)
 
     try:
@@ -61,6 +62,7 @@ ID: {moderator.id}
 
 @router.callback_query(RemoveModeratorCD.filter())
 async def remove_moderator(callback: CallbackQuery, callback_data: RemoveModeratorCD):
+    '''Удаление модератора'''
     try:
         async with async_session_factory() as session:
             await ModeratorORMHandler.remove(session, pk_value=callback_data.moderator_id)

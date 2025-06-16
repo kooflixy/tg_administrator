@@ -15,7 +15,7 @@ router = Router()
 
 @router.callback_query(ModeratorChatListCD.filter())
 async def get_moderator_chat_list(callback: CallbackQuery, callback_data: ModeratorChatListCD):
-    '''Инлайн-клавиатура списка чатов в настройках'''
+    '''Отображение списка модерируемых чатов модератора'''
     log.debug('%s запросил %s страницу списка чатов модератора moderator_id=%s', name_in_log.user(callback), callback_data.cur_page, callback_data.moderator_id)
 
     # Получение списка чатов для страницы
@@ -34,6 +34,7 @@ async def get_moderator_chat_list(callback: CallbackQuery, callback_data: Modera
 
 @router.callback_query(ModeratorChatDetailsCD.filter())
 async def get_moderator_chat_details(callback: CallbackQuery, callback_data: ModeratorChatDetailsCD):
+    '''Отображение деталей модерируемого чата модератора'''
     log.debug('%s запросил детали модерируемого чата moderator_id=%s chat_id=%s', name_in_log.user(callback), callback_data.moderator_id, callback_data.chat_id)
 
     # Получение модерируемого чата
@@ -66,6 +67,7 @@ f'''
 
 @router.callback_query(ChangeModeratorChatPermissionCD.filter())
 async def change_moderator_chat_permission(callback: CallbackQuery, callback_data: ChangeModeratorChatPermissionCD):
+    '''Изменение какого-либо права модератора в модерируемом чате'''
     log.debug('%s пытается изменить право модератора в чате moderator_id=%s chat_id=%s perm_name=%r', name_in_log.user(callback), callback_data.moderator_id, callback_data.chat_id, callback_data.perm_name)
 
     # Изменение права и получение новой записи
