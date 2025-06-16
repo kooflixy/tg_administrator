@@ -4,7 +4,7 @@ from typing import Optional
 from db.models import ChatORM, ModeratorChatORM
 from db.queries import BaseORMHandler
 
-from sqlalchemy import desc, func, select, text
+from sqlalchemy import delete, desc, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -15,15 +15,29 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
     use_unique_scalars = True
 
     @classmethod
+    async def get_by_moderator_and_chat_ids(cls, session: AsyncSession, moderator_id: int, chat_id: int) -> Optional[ModeratorChatORM]:
+        '''Получает одну определенную запись по pk_value'''
+        query = (
+            select(cls.model_cls)
+            .filter(cls.model_cls.moderator_id==moderator_id, cls.model_cls.chat_id==chat_id)
+            .options(selectinload(cls.model_cls.chat), selectinload(cls.model_cls.moderator))
+        )
+        try:
+            obj = await session.execute(query)
+            obj = obj.scalar()
+        except Exception as ex:
+            log.error('При получении %s с moderator_id=%s chat_id=%s произошла ошибка', cls.model_cls, moderator_id, chat_id, exc_info=ex)
+            raise ex
+        return obj
+
+    @classmethod
     async def insert(cls, session: AsyncSession, moderator_id: int, chat_id: int):
         '''Делает запись и возвращает записанный объект'''
         if not isinstance(moderator_id, int):
-            log.warning('Неверный тип moderator_id: ожидался int, но был получен %s (%r)', type(moderator_id), moderator_id)
-            raise ValueError('moderator_id должен быть int')
+            raise TypeError('moderator_id должен быть int')
         
         if not isinstance(chat_id, int):
-            log.warning('Неверный тип chat_id: ожидался int, но был получен %s (%r)', type(chat_id), chat_id)
-            raise ValueError('chat_id должен быть int')
+            raise TypeError('chat_id должен быть int')
 
         try:
             result = await cls._insert(session, moderator_id=moderator_id, chat_id=chat_id)
@@ -34,10 +48,28 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
         return result
     
     @classmethod
+    async def remove_by_moderator_and_chat_ids(cls, session: AsyncSession, moderator_id: int, chat_id: int) -> None:
+        '''Удаляет выбранную запись'''
+        if not isinstance(moderator_id, int):
+            raise TypeError('moderator_id должен быть int')
+        
+        if not isinstance(chat_id, int):
+            raise TypeError('chat_id должен быть int')
+        
+        query = (
+            delete(cls.model_cls)
+            .filter(cls.model_cls.moderator_id==moderator_id, cls.model_cls.chat_id==chat_id)
+        )
+        try:
+            await session.execute(query)
+        except Exception as ex:
+            log.error('При удалении %r с pk_value=%r произошла ошибка moderator_id=%r chat_id=%r', cls.model_cls, moderator_id, chat_id, exc_info=True)
+            raise ex
+
+    @classmethod
     async def get_page(cls, session, page: int, moderator_id: int) -> list[Optional[ModeratorChatORM]]:
         if not isinstance(moderator_id, int):
-            log.warning('Неверный тип moderator_id: ожидался int, но был получен %s (%r)', type(moderator_id), moderator_id)
-            raise ValueError('moderator_id должен быть int')
+            raise TypeError('moderator_id должен быть int')
         
         query = (
             select(cls.model_cls)
@@ -54,60 +86,13 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
     
     
     @classmethod
-    async def get_unassigned_chat_page(cls, session: AsyncSession, page: int, moderator_id: int) -> list[Optional[ModeratorChatORM]]:
-        if not isinstance(moderator_id, int):
-            log.warning('Неверный тип moderator_id: ожидался int, но был получен %s (%r)', type(moderator_id), moderator_id)
-            raise ValueError('moderator_id должен быть int')
-        
-        subquery = (
-            select(cls.model_cls.chat_id)
-            .where(cls.model_cls.moderator_id == moderator_id)
-        )
-        query = (
-            select(ChatORM)
-            .where(ChatORM.id.not_in(subquery))
-            .order_by(desc(ChatORM.created_at), desc(ChatORM.id))
-        )
-        
-        try:
-            return await super()._get_page(session, page, query)
-        except Exception as ex:
-            log.error('При получении страницы %s произошла ошибка, page=%r, moderator_id=%r', cls.model_cls, page, moderator_id, exc_info=ex)
-            raise ex
-    
-    
-    @classmethod
     async def is_last_page(cls, session, page: int, moderator_id: int) -> bool:
         '''Получает булево значение, является ли страница последней'''
         if not isinstance(moderator_id, int):
-            log.warning('Неверный тип moderator_id: ожидался int, но был получен %s (%r)', type(moderator_id), moderator_id)
-            raise ValueError('moderator_id должен быть int')
+            raise TypeError('moderator_id должен быть int')
         
         query = text(f'SELECT COUNT(*) FROM {cls.model_cls.__tablename__} WHERE moderator_id={moderator_id}')
         
-        try:
-            return await cls._is_last_page(session=session, page=page, query=query)
-        except Exception as ex:
-            log.error('При попытке узнать последняя ли страница, произошла ошибка model=%r, page=%r, moderator_id=%r', cls.model_cls, page, moderator_id, exc_info=True)
-            raise ex
-    
-    
-    @classmethod
-    async def is_last_unassigned_chat_page(cls, session, page: int, moderator_id: int) -> bool:
-        '''Получает булево значение, является ли страница последней'''
-        if not isinstance(moderator_id, int):
-            log.warning('Неверный тип moderator_id: ожидался int, но был получен %s (%r)', type(moderator_id), moderator_id)
-            raise ValueError('moderator_id должен быть int')
-        
-        subquery = (
-            select(cls.model_cls.chat_id)
-            .where(cls.model_cls.moderator_id == moderator_id)
-        )
-        query = (
-            select(func.count())
-            .where(ChatORM.id.not_in(subquery))
-        )
-
         try:
             return await cls._is_last_page(session=session, page=page, query=query)
         except Exception as ex:
@@ -118,16 +103,13 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
     @classmethod
     async def change_permission(cls, session: AsyncSession, moderator_id: int, chat_id: int, perm_name: str) -> None:
         if not isinstance(moderator_id, int):
-            log.warning('Неверный тип moderator_id: ожидался int, но был получен %s (%r)', type(moderator_id), moderator_id)
-            raise ValueError('moderator_id должен быть int')
+            raise TypeError('moderator_id должен быть int')
         
         if not isinstance(chat_id, int):
-            log.warning('Неверный тип chat_id: ожидался int, но был получен %s (%r)', type(chat_id), chat_id)
-            raise ValueError('chat_id должен быть int')
+            raise TypeError('chat_id должен быть int')
         
         if not isinstance(perm_name, str):
-            log.warning('Неверный тип perm_name: ожидался str, но был получен %s (%r)', type(perm_name), perm_name)
-            raise ValueError('perm_name должен быть str')
+            raise TypeError('perm_name должен быть str')
         
         query = text(
             f'''UPDATE {cls.model_cls.__tablename__}

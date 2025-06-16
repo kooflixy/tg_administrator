@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from typing import Optional
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -5,95 +6,81 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.keyboards.contrib import *
 from app.keyboards.settings_menu import ModeratorListCD, SettingsListCD
-from db.models import ChatORM, ModeratorORM, LnkChatModeratorORM
+from app.utils.pagination import get_paginator_ikb
+from db.models import ChatORM, ModeratorORM, ModeratorChatORM
+
+# Действия с модераторами
+class ModeratorDetailsCD(CallbackData, ModerIdArg, BackPageArg, prefix='moderator_d'): ...
 
 class AddModeratorCD(CallbackData, prefix='add_moderator'): ...
 
-class ModerCDArgs:
-    moderator_id: int
-    page: int = 1
+class RemoveModeratorCD(CallbackData, ModerIdArg, BackPageArg, prefix='remove_moderator'): ...
 
-class RemoveModeratorCD(ModerCDArgs, CallbackData, prefix='remove_moderator'): ...
 
-class ModeratorDetailsCD(ModerCDArgs, CallbackData, prefix='moderator_d'): ...
+# Действия с чатами модератора
+class ModeratorChatListCD(CallbackData, ModerIdArg, CurrentPageArg,  prefix='moderator_ch_lst'): ...
 
-class ModeratorChatsListCD(ModerCDArgs, CallbackData, prefix='moderator_ch_lst'): ...
+class ModeratorChatDetailsCD(CallbackData, ModerIdArg, BackPageArg, ModerChatIdCDArg, prefix='moderator_ch_d'): ...
 
-class AddModeratorChatListCD(ModerCDArgs, CallbackData, prefix='add_moderator_ch_l'): ...
+class AddModeratorChatListCD(CallbackData, ModerIdArg, BackPageArg, CurrentPageArg, prefix='add_moderator_ch_l'): ...
 
-class AddModeratorChatCD(ModerCDArgs, CallbackData, prefix='add_moderator_ch'):
-    chat_id: int
+class AddModeratorChatCD(CallbackData, ModerIdArg, ModerChatIdCDArg, BackPageArg, prefix='add_moderator_ch'): ...
 
-class ModeratorChatDetailsCD(ModerCDArgs, CallbackData, prefix='moderator_ch_d'):
-    chat_id: int
+class RemoveModeratorChatCD(CallbackData, ModerIdArg, ModerChatIdCDArg, BackPageArg, prefix='remove_moderator_ch'): ...
 
-class RemoveModeratorChatCD(ModerCDArgs, CallbackData, prefix='remove_moderator_ch'):
-    chat_id: int
-
-class ChangeModeratorChatPermissionCD(ModerCDArgs, CallbackData, prefix='change_m_ch_perm'):
-    chat_id: int
+class ChangeModeratorChatPermissionCD(CallbackData, ModerIdArg, ModerChatIdCDArg, BackPageArg, prefix='change_m_ch_perm'):
     perm_name: str
 
 
-def moderator_list_ikb(moderator_list: list[ModeratorORM], page: int):
+def moderator_list_ikb(moderator_list: list[ModeratorORM], page: int, is_last_page: bool):
     # Создание клавиатуры кнопок
 
     builder = InlineKeyboardBuilder()
     builder.button(text='Добавить модератора', callback_data=AddModeratorCD().pack())
     for moderator in moderator_list:
-        builder.button(text=moderator.name, callback_data=ModeratorDetailsCD(moderator_id=moderator.id, page=page).pack())
-    builder.button(text='⬅', callback_data=SettingsListCD().pack())
-    builder.attach(InlineKeyboardBuilder.from_markup(get_paginator_ikb(page, ModeratorListCD)))
-    builder.adjust(1, *([1]*len(moderator_list)), 4)
+        builder.button(text=moderator.name, callback_data=ModeratorDetailsCD(moderator_id=moderator.id, back_page=page).pack())
+    builder.attach(get_paginator_ikb(ModeratorListCD, cur_page=page, is_last_page=is_last_page))
+    builder.attach(back_ibtn(SettingsListCD()))
+    builder.adjust(1, *([1]*len(moderator_list)), 3, 1)
 
     return builder.as_markup()
 
-def moderator_details_ikb(moderator_id: int, page: int):
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text='Чаты', callback_data=ModeratorChatsListCD(moderator_id=moderator_id, page=page).pack())],
-            [
-                InlineKeyboardButton(text='⬅', callback_data=ModeratorListCD().pack()), 
-                InlineKeyboardButton(text='❌Удалить', callback_data=RemoveModeratorCD(moderator_id=moderator_id, page=page).pack())
-            ],
-        ]
-    )
-    return kb
+def moderator_details_ikb(moderator_id: int, back_page: int = 1):
+    builder = InlineKeyboardBuilder()
+    builder.button(text='Чаты', callback_data=ModeratorChatListCD(cur_page=1, moderator_id=moderator_id).pack())
+    builder.button(text='❌Разжаловать', callback_data=RemoveModeratorCD(moderator_id=moderator_id, back_page=back_page).pack())
+    builder.attach(back_ibtn(ModeratorListCD(cur_page=back_page)))
+    builder.adjust(1, 1, 1)
 
-def removed_moderator_details_ikb(page: int):
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text='⬅', callback_data=ModeratorListCD(page=page).pack())],
-        ]
-    )
-    return kb
+    return builder.as_markup()
 
-def moderator_chat_list_ikb(chat_list: list[LnkChatModeratorORM], page: int, moderator_id: int):
+
+def moderator_chat_list_ikb(chat_list: list[ModeratorChatORM], page: int, moderator_id: int, is_last_page: bool):
     # Создание клавиатуры кнопок
     
     builder = InlineKeyboardBuilder()
-    builder.button(text='Добавить чат', callback_data=AddModeratorChatListCD(moderator_id=moderator_id).pack())
+    builder.button(text='Добавить чат', callback_data=AddModeratorChatListCD(cur_page=1, back_page=page, moderator_id=moderator_id).pack())
     for chat in chat_list:
-        builder.button(text=chat.chat.name, callback_data=ModeratorChatDetailsCD(moderator_id=chat.moderator_id, chat_id=chat.chat_id, page=page).pack())
-    builder.button(**back_ibtn(ModeratorDetailsCD(moderator_id=moderator_id)))
-    builder.attach(InlineKeyboardBuilder.from_markup(get_paginator_ikb(page, ModeratorChatsListCD, moderator_id=moderator_id)))
-    builder.adjust(1, *([1]*len(chat_list)), 4)
+        builder.button(text=chat.chat.name, callback_data=ModeratorChatDetailsCD(chat_id=chat.chat_id, back_page=page, moderator_id=chat.moderator_id).pack())
+    builder.attach(get_paginator_ikb(ModeratorChatListCD, cur_page=page, moderator_id=moderator_id, is_last_page=is_last_page))
+    builder.attach(back_ibtn(ModeratorDetailsCD(back_page=1, moderator_id=moderator_id)))
+    builder.adjust(1, *([1]*len(chat_list)), 3, 1)
 
     return builder.as_markup()
 
-def add_moderator_chat_list_ikb(chat_list: list[ChatORM], page: int, moderator_id: int):
+def add_moderator_chat_list_ikb(chat_list: list[ChatORM], back_page: int, page: int, moderator_id: int, is_last_page: bool):
     # Создание клавиатуры кнопок
     
     builder = InlineKeyboardBuilder()
     for chat in chat_list:
-        builder.button(text=chat.name, callback_data=AddModeratorChatCD(moderator_id=moderator_id, chat_id=chat.id).pack())
-    builder.button(**back_ibtn(ModeratorChatsListCD(moderator_id=moderator_id)))
-    builder.attach(InlineKeyboardBuilder.from_markup(get_paginator_ikb(page, AddModeratorChatListCD, moderator_id=moderator_id)))
-    builder.adjust(*([1]*len(chat_list)), 4)
+        builder.button(text=chat.name, callback_data=AddModeratorChatCD(back_page=page, chat_id=chat.id, moderator_id=moderator_id).pack())
+    builder.attach(get_paginator_ikb(AddModeratorChatListCD, cur_page=page, back_page=back_page, moderator_id=moderator_id, is_last_page=is_last_page))
+    builder.attach(back_ibtn(ModeratorChatListCD(cur_page=back_page, moderator_id=moderator_id)))
+    builder.adjust(*([1]*len(chat_list)), 3, 1)
 
     return builder.as_markup()
 
-def moderator_permissions_ikb(moderator: LnkChatModeratorORM):
+def moderator_chat_details_ikb(moderator: ModeratorChatORM, back_page: int):
 
     builder = InlineKeyboardBuilder()
     for perm_ru_name, perm_db_name, is_perm_exists in zip(['Бан по сети чатов', 'Бан', 'Кик', 'Мут', 'Варн'],
@@ -101,9 +88,9 @@ def moderator_permissions_ikb(moderator: LnkChatModeratorORM):
                                 [moderator.ba_perm, moderator.ban_perm, moderator.kick_perm, moderator.mute_perm, moderator.warn_perm]):
         emoji = '✅' if is_perm_exists else '❌'
         text  =  ' '.join([emoji, perm_ru_name, emoji])
-        builder.button(text=text, callback_data=ChangeModeratorChatPermissionCD(moderator_id=moderator.moderator_id, chat_id=moderator.chat_id, perm_name=perm_db_name))
-    builder.button(**back_ibtn(ModeratorChatsListCD(moderator_id=moderator.moderator_id)))
-    builder.button(text='Удалить', callback_data=RemoveModeratorChatCD(moderator_id=moderator.moderator_id, chat_id=moderator.chat_id).pack())
-    builder.adjust(*([1]*5, 2))
+        builder.button(text=text, callback_data=ChangeModeratorChatPermissionCD(back_page=back_page, moderator_id=moderator.moderator_id, chat_id=moderator.chat_id, perm_name=perm_db_name))
+    builder.button(text='Удалить', callback_data=RemoveModeratorChatCD(back_page=back_page, moderator_id=moderator.moderator_id, chat_id=moderator.chat_id).pack())
+    builder.attach(back_ibtn(ModeratorChatListCD(cur_page=back_page, moderator_id=moderator.moderator_id)))
+    builder.adjust(*([1]*5), 1, 1)
 
     return builder.as_markup()

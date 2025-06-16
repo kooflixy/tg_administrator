@@ -15,7 +15,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
     model_cls: Type[ModelType]
     use_unique_scalars: bool
     
-
+    
     @classmethod
     def _get_unique_scalars(cls, obj) -> Union[Optional[ModelType], list[Optional[ModelType]]]:
         '''Делает скаляр ответа бд, в случае необходимости'''
@@ -42,7 +42,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
         Желательно обставлять в try-except для более подробных логов'''
         result = await session.execute(query)
         scalars = result.scalars()
-        obj_list = cls._get_unique_scalars(obj_list)
+        obj_list = cls._get_unique_scalars(scalars)
         obj_list = scalars.all()
         
         return obj_list
@@ -91,8 +91,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
         query должен быть запросом на список записей. Является утилитой
         Желательно обставлять в try-except для более подробных логов'''
         if not isinstance(page, int):
-            log.warning('Неверный тип page: ожидался int, но был получен %s (%r)', type(page), page)
-            raise ValueError('page должен быть int')
+            raise TypeError('page должен быть int')
 
         query = cls._excert_page_result(query, page, changeable_settings.max_count_in_page)
 
@@ -148,8 +147,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
         query должен быть запросом на список записей.  Является утилитой
         Желательно обставлять в try-except для более подробных логов'''
         if not isinstance(page, int):
-            log.warning('Неверный тип page: ожидался int, но был получен %s (%r)', type(page), page)
-            raise ValueError('page должен быть int')
+            raise TypeError('page должен быть int')
         
         records_num = (await session.execute(query)).scalar()
 

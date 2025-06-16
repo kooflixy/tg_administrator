@@ -1,19 +1,19 @@
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
+from app.keyboards.contrib import *
+
+class SettingsListCD(CallbackData, prefix='setts'): ...
+
+class ChatListCD(CallbackData, CurrentPageArg, prefix='chat_list'): ...
+
+class ModeratorListCD(CallbackData, CurrentPageArg, prefix='moderator_list'): ...
+
 class SettingsType:
     CAPTCHA = 'captcha'
 
 class SettingsTypeCD(CallbackData, prefix='setts_type'):
     type: str
-
-class SettingsListCD(CallbackData, prefix='setts'): ...
-
-class ChatListCD(CallbackData, prefix='chat_list'):
-    page: int = 1
-
-class ModeratorListCD(CallbackData, prefix='moderator_list'):
-    page: int = 1
 
 def settings_menu_ikb():
     kb = InlineKeyboardMarkup(

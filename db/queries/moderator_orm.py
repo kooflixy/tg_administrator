@@ -1,5 +1,7 @@
 from logging import getLogger
-from db.models import ModeratorORM
+
+from sqlalchemy import delete
+from db.models import ModeratorChatORM, ModeratorORM
 from db.queries import BaseORMHandler
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,12 +16,10 @@ class ModeratorORMHandler(BaseORMHandler[ModeratorORM]):
     async def insert(cls, session: AsyncSession, user_id: int, user_name: str):
         '''Делает запись и возвращает записанный объект'''
         if not isinstance(user_id, int):
-            log.warning('Неверный тип user_id: ожидался int, но был получен %s (%r)', type(user_id), user_id)
-            raise ValueError('user_id должен быть int')
+            raise TypeError('user_id должен быть int')
         
         if not isinstance(user_name, str):
-            log.warning('Неверный тип user_name: ожидался str, но был получен %r', user_name)
-            raise ValueError('user_name должен был str')
+            raise TypeError('user_name должен был str')
 
         try:
             result = await cls._insert(session, id=user_id, name=user_name)
@@ -28,3 +28,21 @@ class ModeratorORMHandler(BaseORMHandler[ModeratorORM]):
             raise ex
 
         return result
+    
+    @classmethod
+    async def remove(cls, session: AsyncSession, pk_value) -> None:
+        '''Удаляет выбранную запись'''
+        query1 = (
+            delete(ModeratorChatORM)
+            .filter(ModeratorChatORM.moderator_id==pk_value)
+        )
+        query2 = (
+            delete(cls.model_cls)
+            .filter(cls.model_cls.id==pk_value)
+        )
+        try:
+            await session.execute(query1)
+            await session.execute(query2)
+        except Exception as ex:
+            log.error('При удалении %r с pk_value=%r произошла ошибка', cls.model_cls, pk_value, exc_info=True)
+            raise ex

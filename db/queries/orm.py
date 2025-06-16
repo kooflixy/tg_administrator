@@ -7,7 +7,7 @@ from sqlalchemy import and_, delete, func, select, desc, text, union
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import ChatORM, ModeratorORM, LnkChatModeratorORM
+from db.models import ChatORM, ModeratorORM, ModeratorChatORM
 from db.database import Base
 from config import changeable_settings
 
