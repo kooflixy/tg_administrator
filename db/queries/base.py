@@ -27,11 +27,8 @@ class BaseORMHandler(Generic[ModelType], ABC):
     @classmethod
     async def get(cls, session: AsyncSession, pk_value: int) -> Optional[ModelType]:
         '''Получает одну определенную запись по pk_value'''
-        try:
-            obj = await session.get(cls.model_cls, pk_value)
-        except Exception as ex:
-            log.error('При получении %s с pk_value=%s произошла ошибка', cls.model_cls, pk_value, exc_info=ex)
-            raise ex
+
+        obj = await session.get(cls.model_cls, pk_value)
         
         return obj
 
@@ -54,11 +51,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
             select(cls.model_cls)
         )
 
-        try:
-            return await cls._get_all(session, query)
-        except Exception as ex:
-            log.error('При получении всех %s произошла ошибка', cls.model_cls, exc_info=ex)
-            raise ex
+        return await cls._get_all(session, query)
 
     @classmethod
     async def get_all_id(cls, session: AsyncSession) -> list[Optional[ModelType]]:
@@ -67,11 +60,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
             select(cls.model_cls.id)
         )
 
-        try:
-            return await cls._get_all(session, query)
-        except Exception as ex:
-            log.error('При получении всех id %s произошла ошибка', cls.model_cls, exc_info=ex)
-            raise ex
+        return await cls._get_all(session, query)
     
 
     @staticmethod
@@ -108,11 +97,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
             .order_by(desc(cls.model_cls.created_at), desc(cls.model_cls.id))
         )
 
-        try:
-            return await cls._get_page(session=session, page=page, query=query)
-        except Exception as ex:
-            log.error('При получении страницы %s произошла ошибка, page=%r', cls.model_cls, page, exc_info=ex)
-            raise ex
+        return await cls._get_page(session=session, page=page, query=query)
 
 
     @classmethod
@@ -134,11 +119,8 @@ class BaseORMHandler(Generic[ModelType], ABC):
             delete(cls.model_cls)
             .filter(cls.model_cls.id==pk_value)
         )
-        try:
-            await session.execute(query)
-        except Exception as ex:
-            log.error('При удалении %r с pk_value=%r произошла ошибка', cls.model_cls, pk_value, exc_info=True)
-            raise ex
+
+        await session.execute(query)
 
 
     @classmethod
@@ -160,8 +142,4 @@ class BaseORMHandler(Generic[ModelType], ABC):
         '''Получает булево значение, является ли страница последней. Может переопределяться в дочерних классах'''
         query = text(f'SELECT COUNT(*) FROM {cls.model_cls.__tablename__}')
         
-        try:
-            return await cls._is_last_page(session=session, page=page, query=query)
-        except Exception as ex:
-            log.error('При попытке узнать последняя ли страница, произошла ошибка model=%r, page=%r', cls.model_cls, page, exc_info=True)
-            raise ex
+        return await cls._is_last_page(session=session, page=page, query=query)

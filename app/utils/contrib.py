@@ -1,4 +1,11 @@
+from dataclasses import dataclass
+from typing import Optional
+from aiogram.types import Message
+from aiogram.filters import CommandObject
 import re
+
+from app.contrib.telthon_manager import TelethonManager
+
 
 def time_text_to_seconds(text):
     units = {
@@ -24,3 +31,26 @@ def time_text_to_seconds(text):
             total_seconds += int(value) * seconds
 
     return total_seconds
+
+class User:
+    def __init__(self, id: int, name: str):
+        self.id = id
+        self.name = name
+
+async def get_user_id_name(message: Message, command: CommandObject) -> Optional[User]:
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        user_name = message.reply_to_message.from_user.full_name
+
+        user = User(id=user_id, name=user_name)
+    else:
+        if not command.args: return
+
+        tl_user = await TelethonManager.get_user(command.args)
+        if not tl_user:
+            msg = await message.reply('Такого пользователя не существует')
+            return
+
+        user = User(id=tl_user.id, name=TelethonManager.get_full_name(tl_user))
+
+    return user

@@ -21,11 +21,7 @@ class ModeratorORMHandler(BaseORMHandler[ModeratorORM]):
         if not isinstance(user_name, str):
             raise TypeError('user_name должен был str')
 
-        try:
-            result = await cls._insert(session, id=user_id, name=user_name)
-        except Exception as ex:
-            log.error('Не удалось добавить модератора user_id=%r, user_name=%r', user_id, user_name, exc_info=True)
-            raise ex
+        result = await cls._insert(session, id=user_id, name=user_name)
 
         return result
     
@@ -40,9 +36,6 @@ class ModeratorORMHandler(BaseORMHandler[ModeratorORM]):
             delete(cls.model_cls)
             .filter(cls.model_cls.id==pk_value)
         )
-        try:
-            await session.execute(query1)
-            await session.execute(query2)
-        except Exception as ex:
-            log.error('При удалении %r с pk_value=%r произошла ошибка', cls.model_cls, pk_value, exc_info=True)
-            raise ex
+
+        await session.execute(query1)
+        await session.execute(query2)

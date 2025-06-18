@@ -43,15 +43,27 @@ class ModeratorChatORM(Base):
 
     repr_cols = ('id')
 
-class UserRestrictionORM(Base):
-    __tablename__ = 'user_restriction_table'
+@dataclass
+class UserRest:
 
     user_id: Mapped[int] = mapped_column(BigInteger)
 
     by_moderator_id: Mapped[int] = mapped_column(BigInteger)
     chat_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
-    action_type: Mapped[Literal['WARN', 'MUTE', 'BAN', 'TOTAL_BAN']] = mapped_column(ENUM(ActionTypeEnum, name='action_type', create_type=False))
+class BaRestORM(Base, UserRest):
+    __tablename__ = 'ba_rest_table'
+
+class BanRestORM(Base, UserRest):
+    __tablename__ = 'ban_rest_table'
+
+class MuteRestORM(Base, UserRest):
+    __tablename__ = 'mute_rest_table'
+    period: Mapped[int] = mapped_column(BigInteger)
+
+class WarnRestORM(Base, UserRest):
+    __tablename__ = 'warn_rest_table'
+    reason: Mapped[Optional[str]]
 
 class DistributionsORM(Base):
     __tablename__ = 'distribution_table'

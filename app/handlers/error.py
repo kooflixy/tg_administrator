@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import Union
 from aiogram import Router
@@ -18,7 +19,6 @@ async def global_error_handler(event: ErrorEvent):
 
     log.exception('При обработке произошла непредвиденная ошибка', exc_info=event.exception)
 
-
     await bot.send_message(settings.ADMIN_ID,
 f'''Произошла непредвиденная ошибка, обратитесь разработчику
 Ошибка: <b>{event.exception.__class__.__name__}</b>
@@ -30,7 +30,9 @@ f'''Произошла непредвиденная ошибка, обратит
             await event.update.callback_query.answer(ERR_MESSAGE)
             log.info('Пользователю было отправлено сообщение о произошедшей ошибке type=%r exception=%r', 'callback_query', event.exception.__class__.__name__)
         if event.update.message:
-            await event.update.message.answer(ERR_MESSAGE)
+            msg = await event.update.message.answer(ERR_MESSAGE)
+            await asyncio.sleep(10)
+            await bot.delete_message(event.update.message.chat.id, msg.message_id)
             log.info('Пользователю было отправлено сообщение о произошедшей ошибке type=%r exception=%r', 'message', event.exception.__class__.__name__)
         # В будущем возможно добавление типов
     except Exception as ex:

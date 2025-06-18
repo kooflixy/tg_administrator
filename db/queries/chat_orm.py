@@ -3,6 +3,7 @@ from typing import Optional
 
 from sqlalchemy import delete, desc, select
 from db.models import ChatORM, ModeratorChatORM
+from db.database import async_session_factory
 from db.queries import BaseORMHandler
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,11 +23,7 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
         if not isinstance(chat_name, str):
             raise TypeError('chat_name должен был str')
 
-        try:
-            result = await cls._insert(session, id=chat_id, name=chat_name)
-        except Exception as ex:
-            log.error('Не удалось добавить модератора chat_id=%r, chat_name=%r', chat_id, chat_name, exc_info=True)
-            raise ex
+        result = await cls._insert(session, id=chat_id, name=chat_name)
 
         return result
     
@@ -41,12 +38,8 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
             delete(cls.model_cls)
             .filter(cls.model_cls.id==pk_value)
         )
-        try:
-            await session.execute(query1)
-            await session.execute(query2)
-        except Exception as ex:
-            log.error('При удалении %r с pk_value=%r произошла ошибка', cls.model_cls, pk_value, exc_info=True)
-            raise ex
+        await session.execute(query1)
+        await session.execute(query2)
         
         
     @classmethod
@@ -64,11 +57,7 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
             .order_by(desc(cls.model_cls.created_at), desc(cls.model_cls.id))
         )
         
-        try:
-            return await super()._get_page(session, page, query)
-        except Exception as ex:
-            log.error('При получении страницы %s произошла ошибка, page=%r, moderator_id=%r', cls.model_cls, page, moderator_id, exc_info=ex)
-            raise ex
+        return await super()._get_page(session, page, query)
         
     
     @classmethod
@@ -86,8 +75,10 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
             .where(cls.model_cls.id.not_in(subquery))
         )
 
-        try:
-            return await cls._is_last_page(session=session, page=page, query=query)
-        except Exception as ex:
-            log.error('При попытке узнать последняя ли страница, произошла ошибка model=%r, page=%r, moderator_id=%r', cls.model_cls, page, moderator_id, exc_info=True)
-            raise ex
+        return await cls._is_last_page(session=session, page=page, query=query)
+    
+    
+    @classmethod
+    async def is_chat_monitored(cls, chat_id: int) -> bool:
+        async with async_session_factory() as session:
+            return chat_id in await cls.get_all_id(session)

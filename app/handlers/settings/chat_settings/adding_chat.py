@@ -60,16 +60,18 @@ async def input_chat_url(message: Message, state: FSMContext):
         log.info('%s ввёл ссылку на чат для его добавления в отслеживаемые, но это оказался не чат, а канал chat_url=%r', name_in_log.user(message), message.text)
         return
 
+    chat_id = int('-100' + str(chat.id))
+
     try:
         async with async_session_factory() as session:
             # Проверка, не ялвяется ли чат уже отслеживаемым
-            if chat.id in await ChatORMHandler.get_all_id(session):
+            if chat_id in await ChatORMHandler.get_all_id(session):
                 await message.answer('Чат уже отслеживается')
                 log.info('%s ввёл ссылку на чат для его добавления в отслеживаемые, но он уже отслеживается chat_url=%r', name_in_log.user(message), message.text)
                 return
 
             # Добавление чата в отслеживаемые
-            await ChatORMHandler.insert(session, chat.id, chat.title)
+            await ChatORMHandler.insert(session, chat_id, chat.title)
             await session.commit()
     except:
         await message.answer('⚠Произошла ошибка')

@@ -3,16 +3,36 @@ from typing import Optional
 
 from db.models import ChatORM, ModeratorChatORM
 from db.queries import BaseORMHandler
+from db.database import async_session_factory
 
 from sqlalchemy import delete, desc, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+
+from config import settings
 
 log = getLogger(__name__)
 
 class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
     model_cls = ModeratorChatORM
     use_unique_scalars = True
+
+    @classmethod
+    async def get_all_id(cls, session):
+        lst = await super().get_all_id(session)
+        lst.append(settings.ADMIN_ID)
+        return lst
+
+    @classmethod
+    async def get_all_moderator_ids_in_chat(cls, session: AsyncSession, chat_id: int):
+        query = (
+            select(ModeratorChatORM.moderator_id)
+            .filter(ModeratorChatORM.chat_id==chat_id)
+        )
+        lst = await cls._get_all(session, query)
+        lst.append(settings.ADMIN_ID)
+        return lst
+
 
     @classmethod
     async def get_by_moderator_and_chat_ids(cls, session: AsyncSession, moderator_id: int, chat_id: int) -> Optional[ModeratorChatORM]:
@@ -22,12 +42,9 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
             .filter(cls.model_cls.moderator_id==moderator_id, cls.model_cls.chat_id==chat_id)
             .options(selectinload(cls.model_cls.chat), selectinload(cls.model_cls.moderator))
         )
-        try:
-            obj = await session.execute(query)
-            obj = obj.scalar()
-        except Exception as ex:
-            log.error('При получении %s с moderator_id=%s chat_id=%s произошла ошибка', cls.model_cls, moderator_id, chat_id, exc_info=ex)
-            raise ex
+
+        obj = await session.execute(query)
+        obj = obj.scalar()
         return obj
 
     @classmethod
@@ -39,11 +56,7 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
         if not isinstance(chat_id, int):
             raise TypeError('chat_id должен быть int')
 
-        try:
-            result = await cls._insert(session, moderator_id=moderator_id, chat_id=chat_id)
-        except Exception as ex:
-            log.error('Не удалось добавить модератора moderator_id=%r, chat_id=%r', moderator_id, chat_id, exc_info=True)
-            raise ex
+        result = await cls._insert(session, moderator_id=moderator_id, chat_id=chat_id)
 
         return result
     
@@ -60,11 +73,8 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
             delete(cls.model_cls)
             .filter(cls.model_cls.moderator_id==moderator_id, cls.model_cls.chat_id==chat_id)
         )
-        try:
-            await session.execute(query)
-        except Exception as ex:
-            log.error('При удалении %r с pk_value=%r произошла ошибка moderator_id=%r chat_id=%r', cls.model_cls, moderator_id, chat_id, exc_info=True)
-            raise ex
+
+        await session.execute(query)
 
     @classmethod
     async def get_page(cls, session, page: int, moderator_id: int) -> list[Optional[ModeratorChatORM]]:
@@ -78,11 +88,7 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
             .order_by(desc(cls.model_cls.created_at), desc(cls.model_cls.id))
         )
 
-        try:
-            return await super()._get_page(session, page, query)
-        except Exception as ex:
-            log.error('При получении страницы %s произошла ошибка, page=%r, moderator_id=%r', cls.model_cls, page, moderator_id, exc_info=ex)
-            raise ex
+        return await super()._get_page(session, page, query)
     
     
     @classmethod
@@ -93,11 +99,7 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
         
         query = text(f'SELECT COUNT(*) FROM {cls.model_cls.__tablename__} WHERE moderator_id={moderator_id}')
         
-        try:
-            return await cls._is_last_page(session=session, page=page, query=query)
-        except Exception as ex:
-            log.error('При попытке узнать последняя ли страница, произошла ошибка model=%r, page=%r, moderator_id=%r', cls.model_cls, page, moderator_id, exc_info=True)
-            raise ex
+        return await cls._is_last_page(session=session, page=page, query=query)
         
         
     @classmethod
@@ -116,8 +118,10 @@ class ModeratorChatORMHandler(BaseORMHandler[ModeratorChatORM]):
             SET {perm_name} = NOT {perm_name}
             WHERE moderator_id={moderator_id} and chat_id={chat_id}'''
         )
-        try:
-            await session.execute(query)
-        except Exception as ex:
-            log.error('При попытке изменить право %r произошла ошибка moderator_id=%r, chat_id=%r, perm_name=%r', cls.model_cls, moderator_id, chat_id, perm_name, exc_info=True)
-            raise ex
+
+        await session.execute(query)
+
+    @classmethod
+    async def is_moderator(cls, user_id: int, chat_id: int) -> bool:
+        async with async_session_factory() as session:
+            return user_id in await cls.get_all_moderator_ids_in_chat(session, chat_id)
