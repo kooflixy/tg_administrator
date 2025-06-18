@@ -24,6 +24,7 @@ async def main():
         settings.moderator_settings.adding_moderator_chat.router,
 
         administration.ban.router,
+        administration.kick.router,
 
         settings.captcha.router,
 

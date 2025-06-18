@@ -14,7 +14,7 @@ router = Router()
 
 @router.chat_member(ChatMemberUpdatedFilter(IS_NOT_MEMBER >> IS_MEMBER))
 async def react_new_member(event: ChatMemberUpdated):
-    if not await ChatORMHandler.is_chat_monitored(int(str(event.chat.id)[4:])): return
+    if not await ChatORMHandler.is_chat_monitored(event.chat.id): return
 
     log.info('%s вошел в чат %s',
                 name_in_log.user(event), name_in_log.chat(event))

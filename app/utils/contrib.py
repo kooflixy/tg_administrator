@@ -1,3 +1,4 @@
+import asyncio
 from dataclasses import dataclass
 from typing import Optional
 from aiogram.types import Message
@@ -5,6 +6,7 @@ from aiogram.filters import CommandObject
 import re
 
 from app.contrib.telthon_manager import TelethonManager
+from app.bot_obj import bot
 
 
 def time_text_to_seconds(text):
@@ -49,6 +51,8 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
         tl_user = await TelethonManager.get_user(command.args)
         if not tl_user:
             msg = await message.reply('Такого пользователя не существует')
+            await asyncio.sleep(10)
+            await bot.delete_messages(message.chat.id, [msg.message_id, message.message_id])
             return
 
         user = User(id=tl_user.id, name=TelethonManager.get_full_name(tl_user))

@@ -1,6 +1,6 @@
 import asyncio
 from typing import Optional
-from aiogram.types import Message
+from aiogram.types import Message, ChatMemberOwner, ChatMemberAdministrator, ChatMemberLeft, ChatMemberBanned
 from pydantic import validate_call
 
 from app.bot_obj import bot
@@ -43,7 +43,8 @@ class RestChecker:
     @classmethod
     @validate_call
     async def is_user_member(cls, user_id: int, message: Message) -> bool:
-        if await bot.get_chat_member(message.chat.id, user_id): True
+        chat_member = await bot.get_chat_member(message.chat.id, user_id)
+        if not (isinstance(chat_member, ChatMemberLeft) or isinstance(chat_member, ChatMemberBanned)): return True
 
         await cls.reply_n_delete('Пользователь не состоит в группе', message)
         return False
@@ -54,5 +55,12 @@ class RestChecker:
         if await ModeratorChatORMHandler.is_moderator(user_id, message.chat.id):
             await cls.reply_n_delete('Пользователь является модератором', message)
             return True
+        
+        chat_member = await bot.get_chat_member(message.chat.id, user_id)
+
+        if isinstance(chat_member, ChatMemberOwner) or isinstance(chat_member, ChatMemberAdministrator):
+            await cls.reply_n_delete('Пользователь является модератором', message)
+            return True
+
 
         return False
