@@ -26,6 +26,7 @@ async def main():
         administration.ban.router,
         administration.kick.router,
         administration.mute.router,
+        administration.warn.router,
 
         settings.captcha.router,
 

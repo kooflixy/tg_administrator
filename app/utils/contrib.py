@@ -9,7 +9,7 @@ import re
 from app.contrib.telthon_manager import TelethonManager
 from app.bot_obj import bot
 
-BAN_FOREVER = 31_622_400
+MUTE_FOREVER = 31_622_400
 
 log = getLogger(__name__)
 
@@ -66,7 +66,7 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
             return
         
         # message.entities[0] - сам объект команды
-        if len(message.entities) > 1:
+        if len(message.entities) > 2:
             if message.entities[1].type == "text_mention":
                 # в теории для этого случая commands.args = '[упоминание(если у человека не стоит юзернейм)] [время]'
                 user = message.entities[1].user
@@ -83,7 +83,7 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
             # command.args = '[user_id] [время]'
             user = await TelethonManager.get_user(command.args.split()[0])
             if not user:
-                return None, BAN_FOREVER
+                return None, MUTE_FOREVER
             user = User(id=user.id, name=TelethonManager.get_full_name(user))
         else: return
 
@@ -101,7 +101,7 @@ async def get_user_id_name_period(
 
         if not command.args:
             log.debug('Попытка получить данные для мута: is_replied=%r', message.reply_to_message)
-            return user, BAN_FOREVER
+            return user, MUTE_FOREVER
 
         period = time_text_to_seconds(command.args)
 
@@ -110,7 +110,7 @@ async def get_user_id_name_period(
             return None, None
 
         # message.entities[0] - сам объект команды
-        if len(message.entities) > 1:
+        if len(message.entities) > 2:
             if message.entities[1].type == "text_mention":
                 # в теории для этого случая commands.args = '[упоминание(если у человека не стоит юзернейм)] [время]'
                 user = message.entities[1].user
@@ -123,7 +123,7 @@ async def get_user_id_name_period(
                 user = command.args.split()[0]
                 user = await TelethonManager.get_user(user)
                 if not user:
-                    return None, BAN_FOREVER
+                    return None, MUTE_FOREVER
                 user = User(id=user.id, name=TelethonManager.get_full_name(user))
 
                 # получение строки со веременем
@@ -132,15 +132,68 @@ async def get_user_id_name_period(
             # command.args = '[user_id] [время]'
             user = await TelethonManager.get_user(command.args.split()[0])
             if not user:
-                return None, BAN_FOREVER
+                return None, MUTE_FOREVER
             user = User(id=user.id, name=TelethonManager.get_full_name(user))
 
             # получение строки со веременем
             period_text = command.args[len(command.args.split()[0]) :]
         else:
-            return None, BAN_FOREVER
+            return None, MUTE_FOREVER
         if not period_text:
-            return user, BAN_FOREVER
+            return user, MUTE_FOREVER
         period = time_text_to_seconds(period_text)
 
     return user, period
+
+
+async def get_user_id_name_reason(
+    message: Message, command: CommandObject
+) -> tuple[Optional[User], Optional[str]]:
+    if message.reply_to_message:
+        user_id = message.reply_to_message.from_user.id
+        user_name = message.reply_to_message.from_user.full_name
+
+        user = User(id=user_id, name=user_name)
+
+        if not command.args:
+            log.debug('Попытка получить данные для варна: is_replied=%r', message.reply_to_message)
+            return user, None
+
+        reason = command.args
+
+    else:
+        if not command.args:
+            return None, None
+
+        # message.entities[0] - сам объект команды
+        if len(message.entities) > 2:
+            if message.entities[1].type == "text_mention":
+                # в теории для этого случая commands.args = '[упоминание(если у человека не стоит юзернейм)] [причина]'
+                user = message.entities[1].user
+                user = User(id=user.id, name=user.full_name)
+
+                # получение причины варна
+                reason = command.args[message.entities[1].length :]
+            elif message.entities[1].type == "mention":
+                # command.args = '@user [причина]'
+                user = command.args.split()[0]
+                user = await TelethonManager.get_user(user)
+                if not user:
+                    return None, None
+                user = User(id=user.id, name=TelethonManager.get_full_name(user))
+
+                # получение причины варна
+                reason = command.args[message.entities[1].length :]
+        elif command.args.split()[0].isdigit():
+            # command.args = '[user_id] [причина]'
+            user = await TelethonManager.get_user(command.args.split()[0])
+            if not user:
+                return None, None
+            user = User(id=user.id, name=TelethonManager.get_full_name(user))
+
+            # получение причины варна
+            reason = command.args[len(command.args.split()[0]) :]
+        else:
+            return None, None
+
+    return user, reason

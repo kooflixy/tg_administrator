@@ -4,7 +4,7 @@
     "captcha_button_text": "Нажми на  меня!",
     "captcha_waitng": 60,
     "change_of_captcha_waiting": 10,
-    "max_warn_restriction": "MUTE",
+    "max_warn_restriction": "BAN",
     "max_warn_count": 3,
     "remove_system_messages_waiting": 30,
     "remove_ban_notifications": 120,

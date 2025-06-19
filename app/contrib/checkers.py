@@ -4,7 +4,7 @@ from aiogram.types import Message, ChatMemberOwner, ChatMemberAdministrator, Cha
 from pydantic import validate_call
 
 from app.bot_obj import bot
-from app.utils.contrib import BAN_FOREVER
+from app.utils.contrib import MUTE_FOREVER
 from db.queries.moderator_chat_orm import ModeratorChatORMHandler
 
 def is_page_exists(page: int, lst: list) -> bool:
@@ -84,7 +84,7 @@ class RestChecker:
                 await cls.reply_n_delete('Введен неправильный формат времени', message)
                 return False
         
-        if period<=60:
+        if period<60:
                 await cls.reply_n_delete('Нельзя мутить на время меньше минуты', message)
                 return False
         
