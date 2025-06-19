@@ -1,0 +1,11 @@
+[tool.black]
+exclude = '''
+(
+    db/migrations/
+  | /venv/
+)
+'''
+
+[tool.isort]
+profile = "black"
+skip = ["db/migrations", "venv", ".venv", "env", ".env"]

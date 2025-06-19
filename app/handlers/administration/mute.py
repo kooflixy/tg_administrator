@@ -2,9 +2,10 @@ from datetime import datetime
 from logging import getLogger
 
 from aiogram import Router
-from aiogram.types import Message, ChatPermissions
 from aiogram.filters import Command, CommandObject
+from aiogram.types import ChatPermissions, Message
 
+from app.bot_obj import bot
 from app.contrib.checkers import RestChecker
 from app.contrib.for_logging import name_in_log
 from app.contrib.text_markup import TextMarkup
@@ -16,10 +17,8 @@ from app.utils.contrib import (
 )
 from app.utils.rest_handler import MuteRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
-from db.queries.chat_orm import ChatORMHandler
 from db.database import async_session_factory
-from app.bot_obj import bot
-
+from db.queries.chat_orm import ChatORMHandler
 
 log = getLogger(__name__)
 
@@ -149,4 +148,3 @@ async def unban_user(message: Message, command: CommandObject):
             )
 
         await MuteRestHandler.remove(session, chat_id=message.chat.id, user_id=user.id)
-

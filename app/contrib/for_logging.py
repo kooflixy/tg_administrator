@@ -1,14 +1,16 @@
 from typing import overload
-from aiogram.types import Message, CallbackQuery, ChatMemberUpdated
+
+from aiogram.types import CallbackQuery, ChatMemberUpdated, Message
+
 
 class name_in_log:
-    '''Класс для удобного создания имён для логов'''
+    """Класс для удобного создания имён для логов"""
 
     # Для пользователя
     @staticmethod
     @overload
     def user(msg: Message) -> str: ...
-    
+
     @staticmethod
     @overload
     def user(callback: CallbackQuery) -> str: ...
@@ -28,18 +30,17 @@ class name_in_log:
         elif isinstance(entity, ChatMemberUpdated):
             user_id = entity.new_chat_member.user.id
             user_full_name = entity.new_chat_member.user.full_name
-        return f'TgUser(id={user_id}, name={user_full_name!r})'
-    
-    
+        return f"TgUser(id={user_id}, name={user_full_name!r})"
+
     # Для чата
     @staticmethod
     @overload
     def chat(msg: Message) -> str: ...
-    
+
     @staticmethod
     @overload
     def chat(callback: CallbackQuery) -> str: ...
-    
+
     @staticmethod
     @overload
     def chat(event: ChatMemberUpdated) -> str: ...
@@ -55,5 +56,5 @@ class name_in_log:
         elif isinstance(entity, ChatMemberUpdated):
             chat_id = entity.chat.id
             chat_title = entity.chat.title
-        
-        return f'Chat(id={chat_id}, title={chat_title!r})'
+
+        return f"Chat(id={chat_id}, title={chat_title!r})"

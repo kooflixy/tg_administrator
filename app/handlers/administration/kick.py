@@ -1,17 +1,16 @@
 from logging import getLogger
 
 from aiogram import Router
-from aiogram.types import Message
 from aiogram.filters import Command, CommandObject
+from aiogram.types import Message
 
+from app.bot_obj import bot
 from app.contrib.checkers import RestChecker
 from app.contrib.for_logging import name_in_log
 from app.contrib.text_markup import TextMarkup
 from app.utils.contrib import get_user_id_name
 from app.utils.rest_handler import KickRestHandler
-from app.bot_obj import bot
 from db.queries.chat_orm import ChatORMHandler
-
 
 log = getLogger(__name__)
 

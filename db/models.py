@@ -1,36 +1,43 @@
-from dataclasses import dataclass
 import enum
+from dataclasses import dataclass
 from typing import Annotated, Literal, Optional
-from sqlalchemy import BigInteger, Boolean, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import ENUM
 
-from db.database import Base, updated_attp
+from sqlalchemy import BigInteger, Boolean, ForeignKey
+from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from db.classes import ActionTypeEnum
+from db.database import Base, updated_attp
 
 permission_tp = Annotated[bool, mapped_column(default=False)]
+
 
 class Adm:
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     name: Mapped[str]
 
-class ChatORM(Adm, Base):
-    __tablename__ = 'chat_table'
 
-    moderators: Mapped[list["ModeratorChatORM"]] = relationship(lazy='joined')
+class ChatORM(Adm, Base):
+    __tablename__ = "chat_table"
+
+    moderators: Mapped[list["ModeratorChatORM"]] = relationship(lazy="joined")
+
 
 class ModeratorORM(Adm, Base):
-    __tablename__ = 'moderator_table'
+    __tablename__ = "moderator_table"
 
-    chats: Mapped[list["ModeratorChatORM"]] = relationship(lazy='joined')
+    chats: Mapped[list["ModeratorChatORM"]] = relationship(lazy="joined")
+
 
 class ModeratorChatORM(Base):
-    __tablename__ = 'moderator_chat_table'
+    __tablename__ = "moderator_chat_table"
 
-    chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('chat_table.id'))
-    chat: Mapped["ChatORM"] = relationship(back_populates='moderators')
-    moderator_id: Mapped[int] = mapped_column(BigInteger, ForeignKey('moderator_table.id'))
-    moderator: Mapped["ModeratorORM"] = relationship(back_populates='chats')
+    chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))
+    chat: Mapped["ChatORM"] = relationship(back_populates="moderators")
+    moderator_id: Mapped[int] = mapped_column(
+        BigInteger, ForeignKey("moderator_table.id")
+    )
+    moderator: Mapped["ModeratorORM"] = relationship(back_populates="chats")
 
     # Права
     ba_perm: Mapped[permission_tp]
@@ -41,7 +48,8 @@ class ModeratorChatORM(Base):
 
     updated_at: Mapped[updated_attp]
 
-    repr_cols = ('id')
+    repr_cols = "id"
+
 
 @dataclass
 class UserRest:
@@ -51,22 +59,27 @@ class UserRest:
     by_moderator_id: Mapped[int] = mapped_column(BigInteger)
     chat_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
+
 class BaRestORM(Base, UserRest):
-    __tablename__ = 'ba_rest_table'
+    __tablename__ = "ba_rest_table"
+
 
 class BanRestORM(Base, UserRest):
-    __tablename__ = 'ban_rest_table'
+    __tablename__ = "ban_rest_table"
+
 
 class MuteRestORM(Base, UserRest):
-    __tablename__ = 'mute_rest_table'
+    __tablename__ = "mute_rest_table"
     period: Mapped[int] = mapped_column(BigInteger)
 
+
 class WarnRestORM(Base, UserRest):
-    __tablename__ = 'warn_rest_table'
+    __tablename__ = "warn_rest_table"
     reason: Mapped[Optional[str]]
 
+
 class DistributionsORM(Base):
-    __tablename__ = 'distribution_table'
+    __tablename__ = "distribution_table"
 
     chat_id: Mapped[int] = mapped_column(BigInteger)
     interval: Mapped[int]

@@ -1,1 +1,6 @@
-from app.handlers.settings.moderator_settings import moderator, adding_moderator, moderator_chat, adding_moderator_chat
+from app.handlers.settings.moderator_settings import (
+    adding_moderator,
+    adding_moderator_chat,
+    moderator,
+    moderator_chat,
+)

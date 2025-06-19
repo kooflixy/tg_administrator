@@ -10,14 +10,12 @@ from app.contrib.checkers import RestChecker
 from app.contrib.for_logging import name_in_log
 from app.contrib.text_markup import TextMarkup
 from app.utils.contrib import get_user_id_name_reason
-from app.utils.rest_handler import MuteRestHandler
+from app.utils.rest_handler import MuteRestHandler, WarnRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
-from app.utils.rest_handler import WarnRestHandler
+from config import changeable_settings
 from db.classes import ActionTypeEnum
 from db.database import async_session_factory
 from db.queries.chat_orm import ChatORMHandler
-
-from config import changeable_settings
 
 log = getLogger(__name__)
 
@@ -32,11 +30,12 @@ async def warn_user(message: Message, command: CommandObject):
         return
 
     if not await WarnRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
-        log.debug('%s попытался дать варн пользователю, но у него нет на это прав user_id=%s chat_id=%s',
-        name_in_log.user(message),
-        command.args,
-        message.chat.id,
-    )
+        log.debug(
+            "%s попытался дать варн пользователю, но у него нет на это прав user_id=%s chat_id=%s",
+            name_in_log.user(message),
+            command.args,
+            message.chat.id,
+        )
         return
 
     log.debug(
@@ -50,22 +49,42 @@ async def warn_user(message: Message, command: CommandObject):
     user, reason = await get_user_id_name_reason(message, command)
 
     if not user:
-        log.debug('%s попытался дать варн пользователю, но такого пользователя не существует user_id=%s chat_id=%s',name_in_log.user(message),command.args,message.chat.id)
+        log.debug(
+            "%s попытался дать варн пользователю, но такого пользователя не существует user_id=%s chat_id=%s",
+            name_in_log.user(message),
+            command.args,
+            message.chat.id,
+        )
         return
 
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user.id, message):
-        log.debug('%s попытался дать варн пользователю, но такого пользователя не существует user_id=%s chat_id=%s',name_in_log.user(message),command.args,message.chat.id)
+        log.debug(
+            "%s попытался дать варн пользователю, но такого пользователя не существует user_id=%s chat_id=%s",
+            name_in_log.user(message),
+            command.args,
+            message.chat.id,
+        )
         return
 
     # Проверка, является ли пользователь участником группы
     if not await RestChecker.is_user_member(user.id, message):
-        log.debug('%s попытался дать варн пользователю, но он не является участником чата user_id=%s chat_id=%s',name_in_log.user(message),command.args,message.chat.id)
+        log.debug(
+            "%s попытался дать варн пользователю, но он не является участником чата user_id=%s chat_id=%s",
+            name_in_log.user(message),
+            command.args,
+            message.chat.id,
+        )
         return
 
     # Проверка, является ли пользователь модератором чата
     if await RestChecker.is_user_moderator(user.id, message):
-        log.debug('%s попытался дать варн пользователю, но он является модератором user_id=%s chat_id=%s',name_in_log.user(message),command.args,message.chat.id)
+        log.debug(
+            "%s попытался дать варн пользователю, но он является модератором user_id=%s chat_id=%s",
+            name_in_log.user(message),
+            command.args,
+            message.chat.id,
+        )
         return
 
     async with async_session_factory() as session:
@@ -83,12 +102,20 @@ async def warn_user(message: Message, command: CommandObject):
 
         is_warn_limit_exceeded = warn_count >= changeable_settings.max_warn_count
 
-        log.debug('Начало проверки превышено ли количество варнов пользователя moderator=%s user_id=%s chat_id=%s warn_count=%s',name_in_log.user(message),command.args,message.chat.id,warn_count)
+        log.debug(
+            "Начало проверки превышено ли количество варнов пользователя moderator=%s user_id=%s chat_id=%s warn_count=%s",
+            name_in_log.user(message),
+            command.args,
+            message.chat.id,
+            warn_count,
+        )
         if is_warn_limit_exceeded:
             ban_rest = await BanRestHandler._is_rest_exists(
                 session, chat_id=message.chat.id, user_id=user.id
             )
-            await WarnRestHandler.remove(session, chat_id=message.chat.id, user_id=user.id)
+            await WarnRestHandler.remove(
+                session, chat_id=message.chat.id, user_id=user.id
+            )
             await session.commit()
             if ban_rest:
                 await RestChecker.reply_n_delete(
@@ -98,7 +125,12 @@ async def warn_user(message: Message, command: CommandObject):
             else:
                 if changeable_settings.max_warn_restriction == ActionTypeEnum.BAN:
                     await bot.ban_chat_member(message.chat.id, user.id)
-                    await BanRestHandler.apply_restriction(session, moderator_id=message.from_user.id, chat_id=message.chat.id, user_id=user.id)
+                    await BanRestHandler.apply_restriction(
+                        session,
+                        moderator_id=message.from_user.id,
+                        chat_id=message.chat.id,
+                        user_id=user.id,
+                    )
                     await session.commit()
                     await RestChecker.reply_n_delete(
                         f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",

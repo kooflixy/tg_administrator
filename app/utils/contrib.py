@@ -1,13 +1,14 @@
 import asyncio
+import re
 from dataclasses import dataclass
 from logging import getLogger
 from typing import Optional
-from aiogram.types import Message
-from aiogram.filters import CommandObject
-import re
 
-from app.contrib.telthon_manager import TelethonManager
+from aiogram.filters import CommandObject
+from aiogram.types import Message
+
 from app.bot_obj import bot
+from app.contrib.telthon_manager import TelethonManager
 
 MUTE_FOREVER = 31_622_400
 
@@ -64,7 +65,7 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
     else:
         if not command.args:
             return
-        
+
         # message.entities[0] - сам объект команды
         if len(message.entities) > 2:
             if message.entities[1].type == "text_mention":
@@ -85,7 +86,8 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
             if not user:
                 return None, MUTE_FOREVER
             user = User(id=user.id, name=TelethonManager.get_full_name(user))
-        else: return
+        else:
+            return
 
     return user
 
@@ -100,7 +102,10 @@ async def get_user_id_name_period(
         user = User(id=user_id, name=user_name)
 
         if not command.args:
-            log.debug('Попытка получить данные для мута: is_replied=%r', message.reply_to_message)
+            log.debug(
+                "Попытка получить данные для мута: is_replied=%r",
+                message.reply_to_message,
+            )
             return user, MUTE_FOREVER
 
         period = time_text_to_seconds(command.args)
@@ -156,7 +161,10 @@ async def get_user_id_name_reason(
         user = User(id=user_id, name=user_name)
 
         if not command.args:
-            log.debug('Попытка получить данные для варна: is_replied=%r', message.reply_to_message)
+            log.debug(
+                "Попытка получить данные для варна: is_replied=%r",
+                message.reply_to_message,
+            )
             return user, None
 
         reason = command.args
