@@ -1,9 +1,10 @@
 import asyncio
-from typing import Optional
+from typing import Any, Optional
 from aiogram.types import Message, ChatMemberOwner, ChatMemberAdministrator, ChatMemberLeft, ChatMemberBanned
 from pydantic import validate_call
 
 from app.bot_obj import bot
+from app.utils.contrib import BAN_FOREVER
 from db.queries.moderator_chat_orm import ModeratorChatORMHandler
 
 def is_page_exists(page: int, lst: list) -> bool:
@@ -64,3 +65,27 @@ class RestChecker:
 
 
         return False
+    
+    @classmethod
+    @validate_call
+    async def is_mute_data_valid(cls, user: Optional[Any], period: Optional[int], message: Message) -> bool:
+        if message.reply_to_message:
+            if not period:
+                await cls.reply_n_delete('Введен неправильный формат времени', message)
+                return False
+        else:
+            if not user and not period:
+                return False
+            if not user:
+                await cls.reply_n_delete('Такого пользователя не существует', message)
+                return False
+            
+            if not period:
+                await cls.reply_n_delete('Введен неправильный формат времени', message)
+                return False
+        
+        if period<=60:
+                await cls.reply_n_delete('Нельзя мутить на время меньше минуты', message)
+                return False
+        
+        return True

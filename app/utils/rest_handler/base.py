@@ -33,7 +33,7 @@ class BaseRestHandler(Generic[ModelType], ABC):
         '''Проверяет, наложено ли уже ограничение(возвращает запись), может вообще не реализовываться.'''
         query = (
             select(cls.model_cls)
-            .filter(cls.model_cls.chat_id==chat_id, cls.model_cls.user_id==user_id)
+            .filter_by(chat_id=chat_id, user_id=user_id)
             .with_for_update()
         )
         obj = (await session.execute(query)).scalar()
@@ -56,6 +56,6 @@ class BaseRestHandler(Generic[ModelType], ABC):
     async def remove(cls, session: AsyncSession, chat_id: int, user_id: int) -> None:
         query = (
             delete(cls.model_cls)
-            .filter(cls.model_cls.chat_id==chat_id, cls.model_cls.user_id==user_id)
+            .filter_by(chat_id=chat_id, user_id=user_id)
         )
         await session.execute(query)

@@ -1,7 +1,5 @@
-from sqlalchemy import select
 from app.utils.rest_handler.base import BaseRestHandler
-from db.models import BanRestORM, ModeratorChatORM
-from sqlalchemy.ext.asyncio import AsyncSession
+from db.models import ModeratorChatORM
 
 class KickRestHandler(BaseRestHandler[None]):
     model_cls = None

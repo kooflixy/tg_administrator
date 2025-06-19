@@ -29,14 +29,14 @@ async def mute_user(message: Message, command: CommandObject):
     user = await get_user_id_name(message, command)
     if not user: return
 
+    # Проверка, является ли пользователь текущим ботом
+    if await RestChecker.is_user_main_bot(user.id, message): return
+
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user.id, message): return
 
     # Проверка, является ли пользователь участником группы и не находится ли в бане
     if not await RestChecker.is_user_member(user.id, message): return
-
-    # Проверка, является ли пользователь текущим ботом
-    if await RestChecker.is_user_main_bot(user.id, message): return
 
     # Проверка, является ли пользователь модератором чата
     if await RestChecker.is_user_moderator(user.id, message): return

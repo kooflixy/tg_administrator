@@ -1,1 +1,1 @@
-from app.handlers.administration import ban, kick
+from app.handlers.administration import ban, kick, mute
