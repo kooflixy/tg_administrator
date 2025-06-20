@@ -28,13 +28,6 @@ async def ban_user(message: Message, command: CommandObject):
     if not await BanRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
 
-    log.debug(
-        "%s решил забанить пользователя user_id=%r chat_id=%s",
-        name_in_log.user(message),
-        command.args,
-        message.chat.id,
-    )
-
     # Получение пользователя
     user = await get_user_id_name(message, command)
 
@@ -56,6 +49,13 @@ async def ban_user(message: Message, command: CommandObject):
     if await RestChecker.is_user_moderator(chat_member, message):
         return
 
+    log.info(
+        "Попытка забанить moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
+
     async with async_session_factory() as session:
         rest = await BanRestHandler.apply_restriction(
             session,
@@ -67,11 +67,23 @@ async def ban_user(message: Message, command: CommandObject):
         if rest:
             await bot.ban_chat_member(message.chat.id, user.id)
             await session.commit()
+            log.info(
+                "Пользователь забанен moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
 
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(", message
             )
         else:
+            log.info(
+                "Попытка забанить уже забаненного moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} уже находится в бане",
                 message,
@@ -86,20 +98,21 @@ async def unban_user(message: Message, command: CommandObject):
     if not await BanRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
 
-    log.debug(
-        "%s решил разбанить пользователя user_id=%r chat_id=%s",
-        name_in_log.user(message),
-        command.args,
-        message.chat.id,
-    )
-
     user = await get_user_id_name(message, command)
 
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user, message):
         return
 
+    log.info(
+        "Попытка разбанить moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
+
     async with async_session_factory() as session:
+        # удаление бана из бд
         await BanRestHandler.remove(session, chat_id=message.chat.id, user_id=user.id)
 
         # Проверка, является ли пользователь забаненным. Если да, то разбан
@@ -108,6 +121,12 @@ async def unban_user(message: Message, command: CommandObject):
         ):
             await bot.unban_chat_member(message.chat.id, user.id)
             await session.commit()
+            log.info(
+                "Пользователь забанен moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
 
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} успешно разбанен", message
@@ -115,6 +134,12 @@ async def unban_user(message: Message, command: CommandObject):
         else:
             await session.commit()
 
+            log.info(
+                "Попытка разбанить незабаненного moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} не забанен", message
             )

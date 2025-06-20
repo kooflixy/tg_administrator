@@ -25,13 +25,6 @@ async def mute_user(message: Message, command: CommandObject):
     if not await KickRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
 
-    log.debug(
-        "%s решил забанить пользователя user_id=%r chat_id=%s",
-        name_in_log.user(message),
-        command.args,
-        message.chat.id,
-    )
-
     # Получение пользователя
     user = await get_user_id_name(message, command)
 
@@ -53,8 +46,22 @@ async def mute_user(message: Message, command: CommandObject):
     if await RestChecker.is_user_moderator(chat_member, message):
         return
 
+    log.info(
+        "Попытка кикнуть moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
+
     await bot.ban_chat_member(message.chat.id, user.id)
     await bot.unban_chat_member(message.chat.id, user.id)
+
+    log.info(
+        "Пользователь кикнут moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
 
     await RestChecker.reply_n_delete(
         f"{TextMarkup.tag_user(user.name, user.id)} успешно кикнут", message

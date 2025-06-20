@@ -138,6 +138,7 @@ async def unmute_user(message: Message, command: CommandObject):
             await bot.restrict_chat_member(
                 message.chat.id, user.id, ChatPermissions(can_send_messages=True)
             )
+            # удаление мута из бд
             await MuteRestHandler.remove(
                 session, chat_id=message.chat.id, user_id=user.id
             )
