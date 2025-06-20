@@ -22,6 +22,7 @@ class BaseRestHandler(Generic[ModelType], ABC):
 
     @classmethod
     async def is_perm_exists(cls, moderator_id: int, chat_id: int) -> bool:
+        """Проверка, есть ли у администратора право на наложение ограничения"""
         if moderator_id == settings.ADMIN_ID:
             return True
 

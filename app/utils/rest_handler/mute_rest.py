@@ -33,7 +33,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         if obj:
             if obj.period >= MUTE_FOREVER:
                 return obj
-            if obj.created_at.timestamp() + obj.period > datetime.now().timestamp():
+            if obj.created_at.timestamp() + obj.period < datetime.now().timestamp():
                 await cls.remove(session, chat_id=chat_id, user_id=user_id)
                 return
         return obj

@@ -33,13 +33,6 @@ async def mute_user(message: Message, command: CommandObject):
     if not await MuteRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
 
-    log.debug(
-        "%s решил замутить пользователя user_id=%r chat_id=%s",
-        name_in_log.user(message),
-        command.args,
-        message.chat.id,
-    )
-
     # Получение пользователя
     user, period = await get_user_id_name_period(message, command)
 
@@ -84,7 +77,7 @@ async def mute_user(message: Message, command: CommandObject):
             await session.commit()
 
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_date }",
+                f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_date}",
                 message,
             )
         else:
@@ -133,7 +126,6 @@ async def unmute_user(message: Message, command: CommandObject):
             )
 
         else:
-            await session.commit()
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} не замучен", message
             )

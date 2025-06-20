@@ -49,14 +49,15 @@ async def warn_user(message: Message, command: CommandObject):
     if await RestChecker.is_user_moderator(chat_member, message):
         return
 
-    log.debug(
-        "%s решил дать варн пользователю user_id=%s chat_id=%s",
+    log.info(
+        "Попытка дать варн moderator=%s user=%r chat_id=%s",
         name_in_log.user(message),
-        command.args,
+        user,
         message.chat.id,
     )
 
     async with async_session_factory() as session:
+        # накладывание варна с добавлением его в бд
         rest = await WarnRestHandler.apply_restriction(
             session,
             moderator_id=message.from_user.id,
@@ -71,66 +72,72 @@ async def warn_user(message: Message, command: CommandObject):
 
         is_warn_limit_exceeded = warn_count >= changeable_settings.max_warn_count
 
-        log.debug(
-            "Начало проверки превышено ли количество варнов пользователя moderator=%s user_id=%s chat_id=%s warn_count=%s",
-            name_in_log.user(message),
-            command.args,
-            message.chat.id,
-            warn_count,
-        )
         if is_warn_limit_exceeded:
-            ban_rest = await BanRestHandler._is_rest_exists(
-                session, chat_id=message.chat.id, user_id=user.id
-            )
+            # удаление всех варнов из бд
             await WarnRestHandler.remove(
                 session, chat_id=message.chat.id, user_id=user.id
             )
             await session.commit()
-            if ban_rest:
+
+            # какое наказание за превышение колва варнов
+            if changeable_settings.max_warn_restriction == ActionTypeEnum.BAN:
+                await bot.ban_chat_member(message.chat.id, user.id)
+                await BanRestHandler.apply_restriction(
+                    session,
+                    moderator_id=message.from_user.id,
+                    chat_id=message.chat.id,
+                    user_id=user.id,
+                )
+                await session.commit()
+                log.info(
+                    "Пользователь забанен за превышение количества варнов moderator=%s user=%r chat_id=%s",
+                    name_in_log.user(message),
+                    user,
+                    message.chat.id,
+                )
                 await RestChecker.reply_n_delete(
-                    f"{TextMarkup.tag_user(user.name, user.id)} находится в бане",
+                    f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",
                     message,
                 )
-            else:
-                if changeable_settings.max_warn_restriction == ActionTypeEnum.BAN:
-                    await bot.ban_chat_member(message.chat.id, user.id)
-                    await BanRestHandler.apply_restriction(
-                        session,
-                        moderator_id=message.from_user.id,
-                        chat_id=message.chat.id,
-                        user_id=user.id,
-                    )
-                    await session.commit()
-                    await RestChecker.reply_n_delete(
-                        f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",
-                        message,
-                    )
-                elif changeable_settings.max_warn_restriction == ActionTypeEnum.MUTE:
-                    rest = await MuteRestHandler.apply_restriction(
-                        session,
-                        moderator_id=message.from_user.id,
-                        chat_id=message.chat.id,
-                        user_id=user.id,
-                        period=MUTE_TIME,
-                    )
+            elif changeable_settings.max_warn_restriction == ActionTypeEnum.MUTE:
+                rest = await MuteRestHandler.apply_restriction(
+                    session,
+                    moderator_id=message.from_user.id,
+                    chat_id=message.chat.id,
+                    user_id=user.id,
+                    period=MUTE_TIME,
+                )
 
-                    until_timestamp = datetime.now().timestamp() + MUTE_TIME
-                    until_date = f"до {datetime.fromtimestamp(until_timestamp).strftime('%Y-%m-%d %H:%M')}"
-                    await bot.restrict_chat_member(
-                        message.chat.id,
-                        user.id,
-                        ChatPermissions(can_send_messages=False),
-                        until_date=until_timestamp,
-                    )
+                until_timestamp = datetime.now().timestamp() + MUTE_TIME
+                until_date = f"до {datetime.fromtimestamp(until_timestamp).strftime('%Y-%m-%d %H:%M')}"
+                await bot.restrict_chat_member(
+                    message.chat.id,
+                    user.id,
+                    ChatPermissions(can_send_messages=False),
+                    until_date=until_timestamp,
+                )
 
-                    await session.commit()
+                await session.commit()
+                log.info(
+                    "Пользователь замучен за превышение количества варнов moderator=%s user=%r chat_id=%s",
+                    name_in_log.user(message),
+                    user,
+                    message.chat.id,
+                )
 
-                    await RestChecker.reply_n_delete(
-                        f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_date }",
-                        message,
-                    )
+                await RestChecker.reply_n_delete(
+                    f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_date }",
+                    message,
+                )
         else:
             await session.commit()
+            log.info(
+                "Дан варн moderator=%s user=%r chat_id=%s, warn_count=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+                warn_count,
+            )
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} получил свой {warn_count}-й варн.\nДо превышения осталось {changeable_settings.max_warn_count - warn_count}",
                 message,

@@ -55,6 +55,9 @@ class User:
         self.id = id
         self.name = name
 
+    def __repr__(self):
+        return f'TgUser(id={self.id}, name={self.name})'
+
 
 async def get_user_id_name(message: Message, command: CommandObject) -> Optional[User]:
     if message.reply_to_message:
