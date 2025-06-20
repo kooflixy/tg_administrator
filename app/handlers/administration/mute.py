@@ -53,6 +53,14 @@ async def mute_user(message: Message, command: CommandObject):
     if await RestChecker.is_user_moderator(chat_member, message):
         return
 
+    log.info(
+        "Попытка замутить moderator=%s user=%r chat_id=%s period=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+        "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
+    )
+
     async with async_session_factory() as session:
         rest = await MuteRestHandler.apply_restriction(
             session,
@@ -75,12 +83,26 @@ async def mute_user(message: Message, command: CommandObject):
                 until_date=until_timestamp,
             )
             await session.commit()
+            log.info(
+                "Пользователь замучен moderator=%s user=%r chat_id=%s period=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+                "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
+            )
 
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_date}",
                 message,
             )
         else:
+            log.info(
+                "Попытка замутить уже замученного moderator=%s user=%r chat_id=%s period=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+                "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
+            )
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} уже находится в муте",
                 message,
@@ -95,18 +117,18 @@ async def unmute_user(message: Message, command: CommandObject):
     if not await MuteRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
 
-    log.debug(
-        "%s решил размутить пользователя user_id=%r chat_id=%s",
-        name_in_log.user(message),
-        command.args,
-        message.chat.id,
-    )
-
     user = await get_user_id_name(message, command)
 
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user, message):
         return
+
+    log.info(
+        "Попытка размутить moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
 
     async with async_session_factory() as session:
 
@@ -120,12 +142,24 @@ async def unmute_user(message: Message, command: CommandObject):
                 session, chat_id=message.chat.id, user_id=user.id
             )
             await session.commit()
+            log.info(
+                "Пользователь размучен moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
 
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} успешно размучен", message
             )
 
         else:
+            log.info(
+                "Попытка замутить незамученного moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} не замучен", message
             )

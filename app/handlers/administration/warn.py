@@ -50,10 +50,11 @@ async def warn_user(message: Message, command: CommandObject):
         return
 
     log.info(
-        "Попытка дать варн moderator=%s user=%r chat_id=%s",
+        "Попытка дать варн moderator=%s user=%r chat_id=%s reason=%r",
         name_in_log.user(message),
         user,
         message.chat.id,
+        reason,
     )
 
     async with async_session_factory() as session:
@@ -90,10 +91,11 @@ async def warn_user(message: Message, command: CommandObject):
                 )
                 await session.commit()
                 log.info(
-                    "Пользователь забанен за превышение количества варнов moderator=%s user=%r chat_id=%s",
+                    "Пользователь забанен за превышение количества варнов moderator=%s user=%r chat_id=%s reason=%r",
                     name_in_log.user(message),
                     user,
                     message.chat.id,
+                    reason,
                 )
                 await RestChecker.reply_n_delete(
                     f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",
@@ -119,10 +121,11 @@ async def warn_user(message: Message, command: CommandObject):
 
                 await session.commit()
                 log.info(
-                    "Пользователь замучен за превышение количества варнов moderator=%s user=%r chat_id=%s",
+                    "Пользователь замучен за превышение количества варнов moderator=%s user=%r chat_id=%s reason=%r",
                     name_in_log.user(message),
                     user,
                     message.chat.id,
+                    reason,
                 )
 
                 await RestChecker.reply_n_delete(
@@ -132,11 +135,12 @@ async def warn_user(message: Message, command: CommandObject):
         else:
             await session.commit()
             log.info(
-                "Дан варн moderator=%s user=%r chat_id=%s, warn_count=%s",
+                "Дан варн moderator=%s user=%r chat_id=%s, warn_count=%s reason=%r",
                 name_in_log.user(message),
                 user,
                 message.chat.id,
                 warn_count,
+                reason,
             )
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} получил свой {warn_count}-й варн.\nДо превышения осталось {changeable_settings.max_warn_count - warn_count}",

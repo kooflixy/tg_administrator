@@ -56,7 +56,7 @@ class User:
         self.name = name
 
     def __repr__(self):
-        return f'TgUser(id={self.id}, name={self.name})'
+        return f"TgUser(id={self.id}, name={self.name!r})"
 
 
 async def get_user_id_name(message: Message, command: CommandObject) -> Optional[User]:
@@ -107,10 +107,6 @@ async def get_user_id_name_period(
         user = User(id=user_id, name=user_name)
 
         if not command.args:
-            log.debug(
-                "Попытка получить данные для мута: is_replied=%r",
-                message.reply_to_message,
-            )
             return user, MUTE_FOREVER
 
         period = time_text_to_seconds(command.args)
@@ -168,10 +164,6 @@ async def get_user_id_name_reason(
         user = User(id=user_id, name=user_name)
 
         if not command.args:
-            log.debug(
-                "Попытка получить данные для варна: is_replied=%r",
-                message.reply_to_message,
-            )
             return user, None
 
         reason = command.args
@@ -212,5 +204,7 @@ async def get_user_id_name_reason(
                 return None, None
         else:
             return None, None
+
+    reason = reason.strip()
 
     return user, reason
