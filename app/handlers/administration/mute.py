@@ -105,7 +105,7 @@ async def mute_user(message: Message, command: CommandObject):
 
 
 @router.message(Command("unmute"))
-async def unban_user(message: Message, command: CommandObject):
+async def unmute_user(message: Message, command: CommandObject):
     if not await ChatORMHandler.is_chat_monitored(message.chat.id):
         return
 
@@ -129,12 +129,14 @@ async def unban_user(message: Message, command: CommandObject):
 
     async with async_session_factory() as session:
 
+
         if await MuteRestHandler._is_rest_exists(
             session, chat_id=message.chat.id, user_id=user.id
         ):
             await bot.restrict_chat_member(
                 message.chat.id, user.id, ChatPermissions(can_send_messages=True)
             )
+            await MuteRestHandler.remove(session, chat_id=message.chat.id, user_id=user.id)
             await session.commit()
 
             await RestChecker.reply_n_delete(
@@ -146,5 +148,3 @@ async def unban_user(message: Message, command: CommandObject):
             await RestChecker.reply_n_delete(
                 f"{TextMarkup.tag_user(user.name, user.id)} не замучен", message
             )
-
-        await MuteRestHandler.remove(session, chat_id=message.chat.id, user_id=user.id)
