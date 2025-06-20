@@ -67,7 +67,7 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
             return
 
         # message.entities[0] - сам объект команды
-        if len(message.entities) > 2:
+        if len(message.entities) >= 2:
             if message.entities[1].type == "text_mention":
                 # в теории для этого случая commands.args = '[упоминание(если у человека не стоит юзернейм)] [время]'
                 user = message.entities[1].user
@@ -80,12 +80,14 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
                 if not user:
                     return
                 user = User(id=user.id, name=TelethonManager.get_full_name(user))
-        elif command.args.split()[0].isdigit():
-            # command.args = '[user_id] [время]'
-            user = await TelethonManager.get_user(command.args.split()[0])
-            if not user:
-                return None, MUTE_FOREVER
-            user = User(id=user.id, name=TelethonManager.get_full_name(user))
+            elif command.args.split()[0].isdigit():
+                # command.args = '[user_id] [время]'
+                user = await TelethonManager.get_user(command.args.split()[0])
+                if not user:
+                    return None, MUTE_FOREVER
+                user = User(id=user.id, name=TelethonManager.get_full_name(user))
+            else:
+                return
         else:
             return
 
@@ -115,7 +117,7 @@ async def get_user_id_name_period(
             return None, None
 
         # message.entities[0] - сам объект команды
-        if len(message.entities) > 2:
+        if len(message.entities) >= 2:
             if message.entities[1].type == "text_mention":
                 # в теории для этого случая commands.args = '[упоминание(если у человека не стоит юзернейм)] [время]'
                 user = message.entities[1].user
@@ -133,15 +135,17 @@ async def get_user_id_name_period(
 
                 # получение строки со веременем
                 period_text = command.args[message.entities[1].length :]
-        elif command.args.split()[0].isdigit():
-            # command.args = '[user_id] [время]'
-            user = await TelethonManager.get_user(command.args.split()[0])
-            if not user:
-                return None, MUTE_FOREVER
-            user = User(id=user.id, name=TelethonManager.get_full_name(user))
+            elif command.args.split()[0].isdigit():
+                # command.args = '[user_id] [время]'
+                user = await TelethonManager.get_user(command.args.split()[0])
+                if not user:
+                    return None, MUTE_FOREVER
+                user = User(id=user.id, name=TelethonManager.get_full_name(user))
 
-            # получение строки со веременем
-            period_text = command.args[len(command.args.split()[0]) :]
+                # получение строки со веременем
+                period_text = command.args[len(command.args.split()[0]) :]
+            else:
+                return None, MUTE_FOREVER
         else:
             return None, MUTE_FOREVER
         if not period_text:
@@ -174,7 +178,7 @@ async def get_user_id_name_reason(
             return None, None
 
         # message.entities[0] - сам объект команды
-        if len(message.entities) > 2:
+        if len(message.entities) >= 2:
             if message.entities[1].type == "text_mention":
                 # в теории для этого случая commands.args = '[упоминание(если у человека не стоит юзернейм)] [причина]'
                 user = message.entities[1].user
@@ -192,15 +196,17 @@ async def get_user_id_name_reason(
 
                 # получение причины варна
                 reason = command.args[message.entities[1].length :]
-        elif command.args.split()[0].isdigit():
-            # command.args = '[user_id] [причина]'
-            user = await TelethonManager.get_user(command.args.split()[0])
-            if not user:
-                return None, None
-            user = User(id=user.id, name=TelethonManager.get_full_name(user))
+            elif command.args.split()[0].isdigit():
+                # command.args = '[user_id] [причина]'
+                user = await TelethonManager.get_user(command.args.split()[0])
+                if not user:
+                    return None, None
+                user = User(id=user.id, name=TelethonManager.get_full_name(user))
 
-            # получение причины варна
-            reason = command.args[len(command.args.split()[0]) :]
+                # получение причины варна
+                reason = command.args[len(command.args.split()[0]) :]
+            else:
+                return None, None
         else:
             return None, None
 

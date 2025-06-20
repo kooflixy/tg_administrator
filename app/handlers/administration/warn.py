@@ -30,12 +30,23 @@ async def warn_user(message: Message, command: CommandObject):
         return
 
     if not await WarnRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
-        log.debug(
-            "%s попытался дать варн пользователю, но у него нет на это прав user_id=%s chat_id=%s",
-            name_in_log.user(message),
-            command.args,
-            message.chat.id,
-        )
+        return
+
+    # Получение пользователя
+    user, reason = await get_user_id_name_reason(message, command)
+
+    # Проверка на существование пользователя
+    if not await RestChecker.is_user_exists(user, message):
+        return
+
+    chat_member = await bot.get_chat_member(message.chat.id, user.id)
+
+    # Проверка, является ли пользователь участником группы
+    if not await RestChecker.is_user_member(chat_member, message):
+        return
+
+    # Проверка, является ли пользователь модератором чата
+    if await RestChecker.is_user_moderator(chat_member, message):
         return
 
     log.debug(
@@ -44,48 +55,6 @@ async def warn_user(message: Message, command: CommandObject):
         command.args,
         message.chat.id,
     )
-
-    # Получение пользователя
-    user, reason = await get_user_id_name_reason(message, command)
-
-    if not user:
-        log.debug(
-            "%s попытался дать варн пользователю, но такого пользователя не существует user_id=%s chat_id=%s",
-            name_in_log.user(message),
-            command.args,
-            message.chat.id,
-        )
-        return
-
-    # Проверка на существование пользователя
-    if not await RestChecker.is_user_exists(user.id, message):
-        log.debug(
-            "%s попытался дать варн пользователю, но такого пользователя не существует user_id=%s chat_id=%s",
-            name_in_log.user(message),
-            command.args,
-            message.chat.id,
-        )
-        return
-
-    # Проверка, является ли пользователь участником группы
-    if not await RestChecker.is_user_member(user.id, message):
-        log.debug(
-            "%s попытался дать варн пользователю, но он не является участником чата user_id=%s chat_id=%s",
-            name_in_log.user(message),
-            command.args,
-            message.chat.id,
-        )
-        return
-
-    # Проверка, является ли пользователь модератором чата
-    if await RestChecker.is_user_moderator(user.id, message):
-        log.debug(
-            "%s попытался дать варн пользователю, но он является модератором user_id=%s chat_id=%s",
-            name_in_log.user(message),
-            command.args,
-            message.chat.id,
-        )
-        return
 
     async with async_session_factory() as session:
         rest = await WarnRestHandler.apply_restriction(

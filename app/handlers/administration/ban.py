@@ -37,23 +37,23 @@ async def ban_user(message: Message, command: CommandObject):
 
     # Получение пользователя
     user = await get_user_id_name(message, command)
-    if not user:
+
+    # Проверка на существование пользователя
+    if not await RestChecker.is_user_exists(user, message):
         return
 
     # Проверка, является ли пользователь текущим ботом
     if await RestChecker.is_user_main_bot(user.id, message):
         return
 
-    # Проверка на существование пользователя
-    if not await RestChecker.is_user_exists(user.id, message):
-        return
+    chat_member = await bot.get_chat_member(message.chat.id, user.id)
 
     # Проверка, является ли пользователь участником группы
-    if not await RestChecker.is_user_member(user.id, message):
+    if not await RestChecker.is_user_member(chat_member, message):
         return
 
     # Проверка, является ли пользователь модератором чата
-    if await RestChecker.is_user_moderator(user.id, message):
+    if await RestChecker.is_user_moderator(chat_member, message):
         return
 
     async with async_session_factory() as session:
@@ -94,11 +94,9 @@ async def unban_user(message: Message, command: CommandObject):
     )
 
     user = await get_user_id_name(message, command)
-    if not user:
-        return
 
     # Проверка на существование пользователя
-    if not await RestChecker.is_user_exists(user.id, message):
+    if not await RestChecker.is_user_exists(user, message):
         return
 
     async with async_session_factory() as session:

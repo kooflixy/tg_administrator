@@ -46,31 +46,21 @@ async def mute_user(message: Message, command: CommandObject):
     if not await RestChecker.is_mute_data_valid(user, period, message):
         return
 
-    if not user:
-        return
-
     # Проверка, является ли пользователь текущим ботом
     if await RestChecker.is_user_main_bot(user.id, message):
         return
 
+    chat_member = await bot.get_chat_member(message.chat.id, user.id)
+
     # Проверка, является ли пользователь участником группы
-    if not await RestChecker.is_user_member(user.id, message):
+    if not await RestChecker.is_user_member(chat_member, message):
         return
 
     # Проверка, является ли пользователь модератором чата
-    if await RestChecker.is_user_moderator(user.id, message):
+    if await RestChecker.is_user_moderator(chat_member, message):
         return
 
     async with async_session_factory() as session:
-        ban_rest = await BanRestHandler._is_rest_exists(
-            session, chat_id=message.chat.id, user_id=user.id
-        )
-        if ban_rest:
-            await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} находится в бане", message
-            )
-            return
-
         rest = await MuteRestHandler.apply_restriction(
             session,
             moderator_id=message.from_user.id,
@@ -120,15 +110,12 @@ async def unmute_user(message: Message, command: CommandObject):
     )
 
     user = await get_user_id_name(message, command)
-    if not user:
-        return
 
     # Проверка на существование пользователя
-    if not await RestChecker.is_user_exists(user.id, message):
+    if not await RestChecker.is_user_exists(user, message):
         return
 
     async with async_session_factory() as session:
-
 
         if await MuteRestHandler._is_rest_exists(
             session, chat_id=message.chat.id, user_id=user.id
@@ -136,7 +123,9 @@ async def unmute_user(message: Message, command: CommandObject):
             await bot.restrict_chat_member(
                 message.chat.id, user.id, ChatPermissions(can_send_messages=True)
             )
-            await MuteRestHandler.remove(session, chat_id=message.chat.id, user_id=user.id)
+            await MuteRestHandler.remove(
+                session, chat_id=message.chat.id, user_id=user.id
+            )
             await session.commit()
 
             await RestChecker.reply_n_delete(

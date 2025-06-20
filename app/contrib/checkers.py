@@ -7,11 +7,12 @@ from aiogram.types import (
     ChatMemberLeft,
     ChatMemberOwner,
     Message,
+    ResultChatMemberUnion,
 )
 from pydantic import validate_call
 
 from app.bot_obj import bot
-from app.utils.contrib import MUTE_FOREVER
+from app.utils.contrib import MUTE_FOREVER, User
 from db.queries.moderator_chat_orm import ModeratorChatORMHandler
 
 
@@ -33,8 +34,8 @@ class RestChecker:
 
     @classmethod
     @validate_call
-    async def is_user_exists(cls, user_id: Optional[int], message: Message) -> bool:
-        if user_id:
+    async def is_user_exists(cls, user, message: Message) -> bool:
+        if user:
             return True
 
         await cls.reply_n_delete("Такого пользователя не существует", message)
@@ -44,15 +45,16 @@ class RestChecker:
     @validate_call
     async def is_user_main_bot(cls, user_id: int, message: Message) -> bool:
         if user_id == bot.id:
-            await cls.reply_n_delete("Вы не можете удалить меня", message)
+            await cls.reply_n_delete("Пользователь - я", message)
             return True
 
         return False
 
     @classmethod
     @validate_call
-    async def is_user_member(cls, user_id: int, message: Message) -> bool:
-        chat_member = await bot.get_chat_member(message.chat.id, user_id)
+    async def is_user_member(
+        cls, chat_member: ResultChatMemberUnion, message: Message
+    ) -> bool:
         if not (
             isinstance(chat_member, ChatMemberLeft)
             or isinstance(chat_member, ChatMemberBanned)
@@ -64,15 +66,17 @@ class RestChecker:
 
     @classmethod
     @validate_call
-    async def is_user_moderator(cls, user_id: int, message: Message) -> bool:
-        if await ModeratorChatORMHandler.is_moderator(user_id, message.chat.id):
+    async def is_user_moderator(
+        cls, chat_member: ResultChatMemberUnion, message: Message
+    ) -> bool:
+        if isinstance(chat_member, ChatMemberOwner) or isinstance(
+            chat_member, ChatMemberAdministrator
+        ):
             await cls.reply_n_delete("Пользователь является модератором", message)
             return True
 
-        chat_member = await bot.get_chat_member(message.chat.id, user_id)
-
-        if isinstance(chat_member, ChatMemberOwner) or isinstance(
-            chat_member, ChatMemberAdministrator
+        if await ModeratorChatORMHandler.is_moderator(
+            chat_member.user.id, message.chat.id
         ):
             await cls.reply_n_delete("Пользователь является модератором", message)
             return True
