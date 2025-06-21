@@ -98,7 +98,7 @@ async def warn_user(message: Message, command: CommandObject):
                     reason,
                 )
                 await RestChecker.reply_n_delete(
-                    f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",
+                    f"🚫 {TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",
                     message,
                 )
             elif changeable_settings.max_warn_restriction == ActionTypeEnum.MUTE:
@@ -129,7 +129,7 @@ async def warn_user(message: Message, command: CommandObject):
                 )
 
                 await RestChecker.reply_n_delete(
-                    f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_str }",
+                    f"🔇 {TextMarkup.tag_user(user.name, user.id)} замучен {until_str }",
                     message,
                 )
         else:
@@ -142,7 +142,9 @@ async def warn_user(message: Message, command: CommandObject):
                 warn_count,
                 reason,
             )
+            if reason:
+                reason_str = f"\n Причина: {reason}"
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} получил свой {warn_count}-й варн.\nДо превышения осталось {changeable_settings.max_warn_count - warn_count}",
+                f"😮 {TextMarkup.tag_user(user.name, user.id)} получил свой {warn_count}-й варн.{reason_str}\n До превышения осталось {changeable_settings.max_warn_count - warn_count}",
                 message,
             )

@@ -75,7 +75,8 @@ async def ban_user(message: Message, command: CommandObject):
             )
 
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} забанен навсегда(", message
+                f"🚫 {TextMarkup.tag_user(user.name, user.id)} забанен навсегда(",
+                message,
             )
         else:
             log.info(
@@ -85,7 +86,7 @@ async def ban_user(message: Message, command: CommandObject):
                 message.chat.id,
             )
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} уже находится в бане",
+                f"😆 {TextMarkup.tag_user(user.name, user.id)} уже находится в бане",
                 message,
             )
 
@@ -129,7 +130,8 @@ async def unban_user(message: Message, command: CommandObject):
             )
 
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} успешно разбанен", message
+                f"✅ {TextMarkup.tag_user(user.name, user.id)} успешно разбанен",
+                message,
             )
         else:
             await session.commit()
@@ -141,5 +143,5 @@ async def unban_user(message: Message, command: CommandObject):
                 message.chat.id,
             )
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} не забанен", message
+                f"😆 {TextMarkup.tag_user(user.name, user.id)} не забанен", message
             )

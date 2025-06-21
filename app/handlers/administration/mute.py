@@ -92,7 +92,7 @@ async def mute_user(message: Message, command: CommandObject):
             )
 
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_str}",
+                f"🔇 {TextMarkup.tag_user(user.name, user.id)} замучен {until_str}",
                 message,
             )
         else:
@@ -104,7 +104,7 @@ async def mute_user(message: Message, command: CommandObject):
                 "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
             )
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} уже находится в муте",
+                f"😆 {TextMarkup.tag_user(user.name, user.id)} уже находится в муте",
                 message,
             )
 
@@ -151,7 +151,8 @@ async def unmute_user(message: Message, command: CommandObject):
             )
 
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} успешно размучен", message
+                f"✅ {TextMarkup.tag_user(user.name, user.id)} успешно размучен",
+                message,
             )
 
         else:
@@ -162,5 +163,5 @@ async def unmute_user(message: Message, command: CommandObject):
                 message.chat.id,
             )
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} не замучен", message
+                f"😆 {TextMarkup.tag_user(user.name, user.id)} не замучен", message
             )

@@ -64,5 +64,5 @@ async def mute_user(message: Message, command: CommandObject):
     )
 
     await RestChecker.reply_n_delete(
-        f"{TextMarkup.tag_user(user.name, user.id)} успешно кикнут", message
+        f"👋 {TextMarkup.tag_user(user.name, user.id)} успешно кикнут", message
     )
