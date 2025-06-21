@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from logging import getLogger
 
 from telethon import TelegramClient, hints
-from telethon.types import Chat, User
+from telethon.types import User
 
 from config import settings
 
@@ -13,30 +13,46 @@ client = TelegramClient(
     "ses", api_id=settings.TELETHON_API_ID, api_hash=settings.TELETHON_API_HASH
 )
 
-CACHE_TERM = timedelta(hours=1)
+CACHE_TERM = timedelta(seconds=40)
 
 
 class Cache:
+    """Так как с помощью Telethon предполагается много парсинга, создан кеш, чтобы не тратить время зря:)"""
+
     _cache = dict()
+    _last_reset = datetime.now()
+
+    def _check_cache_relevance(func):
+        """Проверяет актуальность кеша, удаляет если пришло время"""
+
+        def wrapper(self, *args, **kwargs):
+
+            now_ = datetime.now()
+
+            if self._last_reset + CACHE_TERM < now_:
+                self._last_reset = now_
+                self._cache = dict()
+
+            return func(self, *args, **kwargs)
+
+        return wrapper
 
     def add(self, key, value) -> None:
         try:
-            self._cache[key] = dict(value=value, created_at=datetime.now())
+            self._cache[key] = value
         except:
             log.exception(
-                "При попытке вставить в кеш телетона произошла ошибка key=%r value=%r",
+                "При попытке вставить в кеш telethon произошла ошибка key=%r value=%r",
                 key,
                 value,
             )
 
+    @_check_cache_relevance
     def get(self, key):
         try:
             if not key in self._cache:
                 return
-            record = self._cache[key]
-            if record["created_at"] + CACHE_TERM < datetime.now():
-                return
-            return record["value"]
+            return self._cache[key]
         except:
             log.exception(
                 "При попытке достать из кеша телетона произошла ошибка key=%r", key
@@ -55,30 +71,32 @@ class TelethonManager:
         log.debug(
             "Были запрошены данные о телеграм чате через telethon url: %s", entity
         )
-        t_s = datetime.now()
         if not entity:
             return
 
         cache_record = cache.get(str(entity))
         if cache_record:
-            print(datetime.now() - t_s)
             return cache_record
 
         await client.start(bot_token=settings.TG_BOT_API_TOKEN)
 
         try:
-            if entity.isdigit():
-                ent = await client.get_input_entity(int(entity))
-                res = await client.get_entity(ent)
+            if isinstance(entity, int):
+                ent = await client.get_input_entity(entity)
             else:
-                res = await client.get_entity(entity)
+                if entity.isdigit():
+                    ent = await client.get_input_entity(int(entity))
+                else:
+                    ent = entity
+            res = await client.get_entity(ent)
         except ValueError:
             return
 
-        cache.add(key=entity, value=res)
+        cache.add(key=str(entity), value=res)
+        if str(res.id) != str(entity):
+            cache.add(key=str(res.id), value=res)
 
         log.debug("Были получены данные о телеграм чате через telethon url: %s", entity)
-        print(datetime.now() - t_s)
         return res
 
     @staticmethod

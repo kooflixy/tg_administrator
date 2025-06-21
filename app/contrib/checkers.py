@@ -26,10 +26,10 @@ def is_page_exists(page: int, lst: list) -> bool:
 class RestChecker:
     @staticmethod
     @validate_call
-    async def reply_n_delete(text: str, message: Message):
+    async def reply_n_delete(text: str, message: Message, interval: int = 10):
         """Отвечает пользователю и через время удаляет сообщение"""
         msg = await message.reply(text)
-        await asyncio.sleep(10)
+        await asyncio.sleep(interval)
         await bot.delete_messages(message.chat.id, [msg.message_id, message.message_id])
 
     @classmethod
@@ -67,18 +67,23 @@ class RestChecker:
     @classmethod
     @validate_call
     async def is_user_moderator(
-        cls, chat_member: ResultChatMemberUnion, message: Message
+        cls,
+        chat_member: ResultChatMemberUnion,
+        message: Message,
+        send_message: bool = True,
     ) -> bool:
         if isinstance(chat_member, ChatMemberOwner) or isinstance(
             chat_member, ChatMemberAdministrator
         ):
-            await cls.reply_n_delete("Пользователь является модератором", message)
+            if send_message:
+                await cls.reply_n_delete("Пользователь является модератором", message)
             return True
 
         if await ModeratorChatORMHandler.is_moderator(
             chat_member.user.id, message.chat.id
         ):
-            await cls.reply_n_delete("Пользователь является модератором", message)
+            if send_message:
+                await cls.reply_n_delete("Пользователь является модератором", message)
             return True
 
         return False
