@@ -1,4 +1,5 @@
 import asyncio
+from datetime import datetime, timedelta
 from typing import Any, Optional
 
 from aiogram.types import (
@@ -91,7 +92,7 @@ class RestChecker:
     @classmethod
     @validate_call
     async def is_mute_data_valid(
-        cls, user: Optional[Any], period: Optional[int], message: Message
+        cls, user: Optional[Any], period: Optional[timedelta], message: Message
     ) -> bool:
         if message.reply_to_message:
             if not period:
@@ -108,7 +109,7 @@ class RestChecker:
                 await cls.reply_n_delete("Введен неправильный формат времени", message)
                 return False
 
-        if period < 60:
+        if period < timedelta(seconds=60):
             await cls.reply_n_delete("Нельзя мутить на время меньше минуты", message)
             return False
 

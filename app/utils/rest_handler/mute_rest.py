@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,7 +21,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         moderator_id: int,
         chat_id: int,
         user_id: int,
-        period: int,
+        period: timedelta,
     ):
         return await super()._insert_user_restriction(
             session, moderator_id, chat_id, user_id, period=period
@@ -33,7 +33,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         if obj:
             if obj.period >= MUTE_FOREVER:
                 return obj
-            if obj.created_at.timestamp() + obj.period < datetime.now().timestamp():
+            if obj.created_at + obj.period < datetime.now():
                 await cls.remove(session, chat_id=chat_id, user_id=user_id)
                 return
         return obj
@@ -45,7 +45,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         moderator_id: int,
         chat_id: int,
         user_id: int,
-        period: int,
+        period: timedelta,
     ):
         a = await super().apply_restriction(
             session, moderator_id, chat_id, user_id, period=period

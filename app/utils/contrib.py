@@ -1,6 +1,7 @@
 import asyncio
 import re
 from dataclasses import dataclass
+from datetime import timedelta
 from logging import getLogger
 from typing import Optional
 
@@ -10,7 +11,7 @@ from aiogram.types import Message
 from app.bot_obj import bot
 from app.contrib.telthon_manager import TelethonManager
 
-MUTE_FOREVER = 31_622_400
+MUTE_FOREVER = timedelta(days=366)
 
 log = getLogger(__name__)
 
@@ -87,7 +88,7 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
                 # command.args = '[user_id] [время]'
                 user = await TelethonManager.get_user(command.args.split()[0])
                 if not user:
-                    return None, MUTE_FOREVER
+                    return
                 user = User(id=user.id, name=TelethonManager.get_full_name(user))
             else:
                 return
@@ -99,7 +100,7 @@ async def get_user_id_name(message: Message, command: CommandObject) -> Optional
 
 async def get_user_id_name_period(
     message: Message, command: CommandObject
-) -> tuple[Optional[User], Optional[int]]:
+) -> tuple[Optional[User], Optional[timedelta]]:
     if message.reply_to_message:
         user_id = message.reply_to_message.from_user.id
         user_name = message.reply_to_message.from_user.full_name
@@ -109,7 +110,7 @@ async def get_user_id_name_period(
         if not command.args:
             return user, MUTE_FOREVER
 
-        period = time_text_to_seconds(command.args)
+        period = timedelta(seconds=time_text_to_seconds(command.args))
 
     else:
         if not command.args:
@@ -149,7 +150,7 @@ async def get_user_id_name_period(
             return None, MUTE_FOREVER
         if not period_text:
             return user, MUTE_FOREVER
-        period = time_text_to_seconds(period_text)
+        period = timedelta(seconds=time_text_to_seconds(period_text))
 
     return user, period
 

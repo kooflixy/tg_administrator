@@ -1,8 +1,9 @@
 import enum
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Annotated, Literal, Optional
 
-from sqlalchemy import BigInteger, Boolean, ForeignKey
+from sqlalchemy import BigInteger, Boolean, ForeignKey, Interval
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -70,7 +71,7 @@ class BanRestORM(Base, UserRest):
 
 class MuteRestORM(Base, UserRest):
     __tablename__ = "mute_rest_table"
-    period: Mapped[int] = mapped_column(BigInteger)
+    period: Mapped[timedelta]
 
 
 class WarnRestORM(Base, UserRest):

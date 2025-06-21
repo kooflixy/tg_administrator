@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging import getLogger
 
 from aiogram import Router
@@ -54,7 +54,7 @@ async def mute_user(message: Message, command: CommandObject):
         return
 
     log.info(
-        "Попытка замутить moderator=%s user=%r chat_id=%s period=%s",
+        "Попытка замутить moderator=%s user=%r chat_id=%s period=%r",
         name_in_log.user(message),
         user,
         message.chat.id,
@@ -71,20 +71,20 @@ async def mute_user(message: Message, command: CommandObject):
         )
         if rest:
             if period < MUTE_FOREVER:
-                until_timestamp = datetime.now().timestamp() + period
-                until_date = f"до {datetime.fromtimestamp(until_timestamp).strftime('%Y-%m-%d %H:%M')}"
+                until = datetime.now() + period
+                until_str = f"до {until.strftime('%Y-%m-%d %H:%M')}"
             else:
-                until_timestamp = 0
-                until_date = "навсегда"
+                until = 0
+                until_str = "навсегда"
             await bot.restrict_chat_member(
                 message.chat.id,
                 user.id,
                 ChatPermissions(can_send_messages=False),
-                until_date=until_timestamp,
+                until_date=until,
             )
             await session.commit()
             log.info(
-                "Пользователь замучен moderator=%s user=%r chat_id=%s period=%s",
+                "Пользователь замучен moderator=%s user=%r chat_id=%s period=%r",
                 name_in_log.user(message),
                 user,
                 message.chat.id,
@@ -92,12 +92,12 @@ async def mute_user(message: Message, command: CommandObject):
             )
 
             await RestChecker.reply_n_delete(
-                f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_date}",
+                f"{TextMarkup.tag_user(user.name, user.id)} замучен {until_str}",
                 message,
             )
         else:
             log.info(
-                "Попытка замутить уже замученного moderator=%s user=%r chat_id=%s period=%s",
+                "Попытка замутить уже замученного moderator=%s user=%r chat_id=%s period=%r",
                 name_in_log.user(message),
                 user,
                 message.chat.id,
