@@ -3,6 +3,7 @@ from typing import Generic, Optional, Type, TypeVar
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from config import settings
 from db.database import Base, async_session_factory
@@ -14,6 +15,14 @@ ModelType = TypeVar("ModelType", bound=Base)
 
 class BaseRestHandler(Generic[ModelType], ABC):
     model_cls: Optional[Type[ModelType]]
+
+    @classmethod
+    async def get_chat_all(cls, chat_id: int) -> list[ModelType]:
+        async with async_session_factory() as session:
+            query = select(cls.model_cls).filter_by(chat_id=chat_id)
+
+            res = (await session.execute(query)).scalars().all()
+            return res
 
     @classmethod
     @abstractmethod

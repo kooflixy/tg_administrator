@@ -1,4 +1,4 @@
-from app.handlers.administration import ban, kick, mute, warn
+from app.handlers.administration import ban, kick, list, mute, warn
 
 # я не знаю, что я тут понаписал
 # вроде работает, но желательно даже смотрите с осторожностью
