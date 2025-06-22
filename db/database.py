@@ -33,6 +33,7 @@ updated_attp = Annotated[
 class Base(DeclarativeBase):
     id: Mapped[intpk]
     created_at: Mapped[created_attp]
+    """Сохраняется только в UTC"""
 
     repr_cols_num = 2
     repr_cols = tuple()

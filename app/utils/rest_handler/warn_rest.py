@@ -6,11 +6,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.utils.rest_handler.base import BaseRestHandler
 from config import changeable_settings
 from db.classes import ActionTypeEnum
+from db.database import async_session_factory
 from db.models import BanRestORM, ModeratorChatORM, MuteRestORM, WarnRestORM
 
 
 class WarnRestHandler(BaseRestHandler[WarnRestORM]):
     model_cls = WarnRestORM
+
+    @classmethod
+    async def get_user_all(cls, chat_id: int, user_id: int) -> list[WarnRestORM]:
+        async with async_session_factory() as session:
+            query = select(cls.model_cls).filter_by(chat_id=chat_id, user_id=user_id)
+
+            res = (await session.execute(query)).scalars().all()
+            return res
 
     @staticmethod
     def _get_perm(moderator: ModeratorChatORM) -> bool:

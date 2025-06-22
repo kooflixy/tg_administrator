@@ -101,6 +101,9 @@ async def unban_user(message: Message, command: CommandObject):
 
     user = await get_user_id_name(message, command)
 
+    if not user:
+        return
+
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user, message):
         return

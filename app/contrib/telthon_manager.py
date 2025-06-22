@@ -115,7 +115,7 @@ class TelethonManager:
     @staticmethod
     def get_full_name(user: User) -> str:
         names = [user.first_name, user.last_name]
-        if None in names:
+        while None in names:
             names.remove(None)
         user_full_name = " ".join(names)
         return user_full_name

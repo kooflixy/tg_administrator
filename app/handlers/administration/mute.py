@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from logging import getLogger
 
 from aiogram import Router
@@ -17,6 +17,7 @@ from app.utils.contrib import (
 )
 from app.utils.rest_handler import MuteRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
+from app.utils.time import get_local_time
 from db.database import async_session_factory
 from db.queries.chat_orm import ChatORMHandler
 
@@ -71,16 +72,15 @@ async def mute_user(message: Message, command: CommandObject):
         )
         if rest:
             if period < MUTE_FOREVER:
-                until = datetime.now() + period
-                until_str = f"до {until.strftime('%Y-%m-%d %H:%M')}"
+                until = get_local_time() + period
+                until_str = f"до {until.strftime('%Y-%m-%d %H:%M')} МСК"
             else:
-                until = 0
                 until_str = "навсегда"
             await bot.restrict_chat_member(
                 message.chat.id,
                 user.id,
                 ChatPermissions(can_send_messages=False),
-                until_date=until,
+                until_date=period,
             )
             await session.commit()
             log.info(
@@ -119,6 +119,9 @@ async def unmute_user(message: Message, command: CommandObject):
 
     user = await get_user_id_name(message, command)
 
+    if not user:
+        return
+
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user, message):
         return
@@ -132,9 +135,23 @@ async def unmute_user(message: Message, command: CommandObject):
 
     async with async_session_factory() as session:
 
-        if await MuteRestHandler._is_rest_exists(
+        rest, is_unmuted = await MuteRestHandler._is_rest_exists_for_unmute(
             session, chat_id=message.chat.id, user_id=user.id
-        ):
+        )
+
+        if not rest or is_unmuted:
+            await session.commit()
+            log.info(
+                "Попытка замутить незамученного moderator=%s user=%r chat_id=%s",
+                name_in_log.user(message),
+                user,
+                message.chat.id,
+            )
+            await RestChecker.reply_n_delete(
+                f"😆 {TextMarkup.tag_user(user.name, user.id)} не замучен", message
+            )
+
+        else:
             await bot.restrict_chat_member(
                 message.chat.id, user.id, ChatPermissions(can_send_messages=True)
             )
@@ -153,15 +170,4 @@ async def unmute_user(message: Message, command: CommandObject):
             await RestChecker.reply_n_delete(
                 f"✅ {TextMarkup.tag_user(user.name, user.id)} успешно размучен",
                 message,
-            )
-
-        else:
-            log.info(
-                "Попытка замутить незамученного moderator=%s user=%r chat_id=%s",
-                name_in_log.user(message),
-                user,
-                message.chat.id,
-            )
-            await RestChecker.reply_n_delete(
-                f"😆 {TextMarkup.tag_user(user.name, user.id)} не замучен", message
             )

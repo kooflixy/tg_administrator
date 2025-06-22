@@ -12,6 +12,7 @@ from app.contrib.text_markup import TextMarkup
 from app.utils.contrib import get_user_id_name_reason
 from app.utils.rest_handler import MuteRestHandler, WarnRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
+from app.utils.time import get_local_time
 from config import changeable_settings
 from db.classes import ActionTypeEnum
 from db.database import async_session_factory
@@ -110,13 +111,13 @@ async def warn_user(message: Message, command: CommandObject):
                     period=MUTE_TIME,
                 )
 
-                until = datetime.now() + MUTE_TIME
-                until_str = f"до {until.strftime('%Y-%m-%d %H:%M')}"
+                until = get_local_time() + MUTE_TIME
+                until_str = f"до {until.strftime('%Y-%m-%d %H:%M')} МСК"
                 await bot.restrict_chat_member(
                     message.chat.id,
                     user.id,
                     ChatPermissions(can_send_messages=False),
-                    until_date=until,
+                    until_date=MUTE_TIME,
                 )
 
                 await session.commit()
@@ -142,6 +143,7 @@ async def warn_user(message: Message, command: CommandObject):
                 warn_count,
                 reason,
             )
+            reason_str = ""
             if reason:
                 reason_str = f"\n Причина: {reason}"
             await RestChecker.reply_n_delete(

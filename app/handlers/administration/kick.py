@@ -18,7 +18,7 @@ router = Router()
 
 
 @router.message(Command("kick"))
-async def mute_user(message: Message, command: CommandObject):
+async def kick_user(message: Message, command: CommandObject):
     if not await ChatORMHandler.is_chat_monitored(message.chat.id):
         return
 
