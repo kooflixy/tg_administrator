@@ -46,6 +46,7 @@ class ModeratorChatORM(Base):
     kick_perm: Mapped[permission_tp]
     mute_perm: Mapped[permission_tp]
     warn_perm: Mapped[permission_tp]
+    close_perm: Mapped[permission_tp]
 
     updated_at: Mapped[updated_attp]
 

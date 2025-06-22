@@ -191,14 +191,15 @@ def moderator_chat_details_ikb(moderator: ModeratorChatORM, back_page: int):
 
     builder = InlineKeyboardBuilder()
     for perm_ru_name, perm_db_name, is_perm_exists in zip(
-        ["Бан по сети чатов", "Бан", "Кик", "Мут", "Варн"],
-        ["ba_perm", "ban_perm", "kick_perm", "mute_perm", "warn_perm"],
+        ["Бан по сети чатов", "Бан", "Кик", "Мут", "Варн", "Закрытие/открытие чата"],
+        ["ba_perm", "ban_perm", "kick_perm", "mute_perm", "warn_perm", "close_perm"],
         [
             moderator.ba_perm,
             moderator.ban_perm,
             moderator.kick_perm,
             moderator.mute_perm,
             moderator.warn_perm,
+            moderator.close_perm,
         ],
     ):
         emoji = "✅" if is_perm_exists else "❌"

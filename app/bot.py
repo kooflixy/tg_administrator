@@ -41,6 +41,7 @@ async def main():
         administration.mute.router,
         administration.warn.router,
         administration.list.router,
+        administration.close.router,
 
         error.router,
     )
