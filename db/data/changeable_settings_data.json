@@ -8,5 +8,9 @@
     "max_warn_count": 3,
     "remove_system_messages_waiting": 30,
     "remove_ban_notifications": 120,
-    "max_count_in_page": 5
+    "max_count_in_page": 5,
+    "close_text": "ну вот корчое какой то текст сюда вводишь и норми",
+    "already_close_text": "окак ну ясно",
+    "open_text": "Чат снова открыт",
+    "already_open_text": "Чат уже открыт"
 }

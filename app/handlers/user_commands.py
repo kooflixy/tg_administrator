@@ -1,26 +1,40 @@
 from logging import getLogger
 
-from aiogram import Router
-from aiogram.filters import Command, CommandObject
+from aiogram import F, Router
+from aiogram.filters import Command, CommandObject, CommandStart, or_f
 from aiogram.types import CallbackQuery, Message
 
 from app.contrib.for_logging import name_in_log
 from app.keyboards.settings_menu import SettingsListCD, settings_menu_ikb
+from app.keyboards.user_commands import menu_rkb
 from config import settings
 
 log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("settings"))
-async def settings_cmd(message: Message, command: CommandObject):
-    log.debug("%s запросил настройки бота", name_in_log.user(message))
-    # Проверка, является ли чат личным
-    if message.chat.type != "private":
-        return
+@router.message(CommandStart())
+async def start(message: Message):
 
     # Проверка, является ли пользователь главным админом
-    if message.from_user.id != settings.ADMIN_ID:
+    if message.chat.id != settings.ADMIN_ID:
+        return
+
+    await message.answer(
+        "Привет! Это твой бот для управления чатами:)", reply_markup=menu_rkb
+    )
+
+    log.info("Старт бота в чате с админом")
+
+
+@router.message(
+    or_f(Command("settings"), F.text.casefold().in_(["⚙настройки", "настройки"]))
+)
+async def settings_cmd(message: Message):
+    log.debug("%s запросил настройки бота", name_in_log.user(message))
+
+    # Проверка, является ли пользователь главным админом
+    if message.chat.id != settings.ADMIN_ID:
         return
 
     await message.answer(
@@ -45,3 +59,32 @@ async def settings_cmd_cq(callback: CallbackQuery):
         "%s получил настройки бота, запрошенные через инлайн-кнопку",
         name_in_log.user(callback),
     )
+
+
+@router.message(
+    or_f(
+        Command("commands_list"),
+        F.text.casefold().in_(["📋список команд", "список команд", "команды"]),
+    )
+)
+async def get_commands_list(message: Message):
+
+    # Проверка, является ли пользователь главным админом
+    if message.chat.id != settings.ADMIN_ID:
+        return
+
+    text = """
+🌟<b>Команды для изменения текста:</b>
+
+<code>/set_close_text</code> <b>[новый текст сообщения]</b> - изменение текста сообщения при закрытии чата
+
+<code>/set_already_close_text</code> <b>[новый текст сообщения]</b> - изменение текста сообщения при попытке закрыть уже закрытый чат
+
+<code>/set_open_text</code> <b>[новый текст сообщения]</b> - изменение текста сообщения при открытии чата
+
+<code>/set_already_open_text</code> <b>[новый текст сообщения]</b> - изменение текста сообщения при попытке открыть уже открытый чата
+"""
+
+    await message.answer(text)
+
+    log.info("Был запрошен список команд")

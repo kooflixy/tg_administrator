@@ -35,6 +35,11 @@ class ChangeableSettings(BaseModel):
 
     max_count_in_page: int = 5
 
+    close_text: str = "Чат закрыт"
+    already_close_text: str = "Чат уже закрыт"
+    open_text: str = "Чат снова открыт"
+    already_open_text: str = "Чат уже открыт"
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 

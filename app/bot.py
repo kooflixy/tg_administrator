@@ -26,6 +26,7 @@ async def main():
 
         pagination.router,
 
+        settings.set_text.router,
         settings.captcha.router,
 
         settings.chat_settings.chat.router,
