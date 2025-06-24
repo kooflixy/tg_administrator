@@ -15,6 +15,7 @@ class ModeratorListCD(CallbackData, CurrentPageArg, prefix="moderator_list"): ..
 
 class SettingsType:
     CAPTCHA = "captcha"
+    WARN = "warn"
 
 
 class SettingsTypeCD(CallbackData, prefix="setts_type"):
@@ -34,6 +35,12 @@ def settings_menu_ikb():
                 InlineKeyboardButton(
                     text="✅Капча",
                     callback_data=SettingsTypeCD(type=SettingsType.CAPTCHA).pack(),
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🚫Варны",
+                    callback_data=SettingsTypeCD(type=SettingsType.WARN).pack(),
                 )
             ],
         ]

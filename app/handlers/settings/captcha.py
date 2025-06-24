@@ -28,7 +28,7 @@ async def captcha_settings(callback: CallbackQuery, callback_data: SettingsTypeC
         reply_markup=captcha_settings_ikb(),
     )
 
-    log.info("%s получил настройки капчи", name_in_log.user(callback))
+    log.debug("%s получил настройки капчи", name_in_log.user(callback))
 
 
 @router.callback_query(ChangeCaptchaStatusCD.filter())

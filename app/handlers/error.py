@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Union
 
 from aiogram import Router
+from aiogram.exceptions import TelegramNetworkError
 from aiogram.types import CallbackQuery, ErrorEvent, Message
 
 from app.bot_obj import bot
@@ -23,24 +24,37 @@ async def global_error_handler(event: ErrorEvent):
         "При обработке произошла непредвиденная ошибка", exc_info=event.exception
     )
 
-    await bot.send_message(
-        settings.ADMIN_ID,
-        f"""Произошла непредвиденная ошибка, обратитесь разработчику
+    if isinstance(event.exception, TelegramNetworkError):
+        pass
+    else:
+        await bot.send_message(
+            settings.ADMIN_ID,
+            f"""Произошла непредвиденная ошибка, обратитесь разработчику
 Ошибка: <b>{event.exception.__class__.__name__}</b>
 Описание: <b>{event.exception}</b>
 Время логирования: <b>{datetime.now()}</b>""",
-    )
+        )
 
     try:
         if event.update.callback_query:
-            await event.update.callback_query.answer(ERR_MESSAGE)
+            if isinstance(event.exception, TelegramNetworkError):
+                await event.update.callback_query.answer(
+                    f"{ERR_MESSAGE} соединения: попробуйте еще раз"
+                )
+            else:
+                await event.update.callback_query.answer(ERR_MESSAGE)
             log.info(
                 "Пользователю было отправлено сообщение о произошедшей ошибке type=%r exception=%r",
                 "callback_query",
                 event.exception.__class__.__name__,
             )
         if event.update.message:
-            msg = await event.update.message.answer(ERR_MESSAGE)
+            if isinstance(event.exception, TelegramNetworkError):
+                msg = await event.update.message.answer(
+                    f"{ERR_MESSAGE} соединения: попробуйте еще раз"
+                )
+            else:
+                msg = await event.update.message.answer(ERR_MESSAGE)
             await asyncio.sleep(10)
             await bot.delete_message(event.update.message.chat.id, msg.message_id)
             log.info(

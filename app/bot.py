@@ -28,6 +28,7 @@ async def main():
 
         settings.set_text.router,
         settings.captcha.router,
+        settings.warn.router,
 
         settings.chat_settings.chat.router,
         settings.chat_settings.adding_chat.router,

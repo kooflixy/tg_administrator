@@ -28,6 +28,8 @@ class ChangeableSettings(BaseModel):
         ActionTypeEnum.MUTE
     )
     max_warn_count: int = 3
+    max_warn_mute_time: int = 10
+    """Измеряется в днях"""
 
     remove_system_messages_waiting: int = 30
 

@@ -22,8 +22,6 @@ log = getLogger(__name__)
 
 router = Router()
 
-MUTE_TIME = timedelta(days=10)
-
 
 @router.message(Command("warn"))
 async def warn_user(message: Message, command: CommandObject):
@@ -103,21 +101,22 @@ async def warn_user(message: Message, command: CommandObject):
                     message,
                 )
             elif changeable_settings.max_warn_restriction == ActionTypeEnum.MUTE:
+                mute_time = timedelta(days=changeable_settings.max_warn_mute_time)
                 rest = await MuteRestHandler.apply_restriction(
                     session,
                     moderator_id=message.from_user.id,
                     chat_id=message.chat.id,
                     user_id=user.id,
-                    period=MUTE_TIME,
+                    period=mute_time,
                 )
 
-                until = get_local_time() + MUTE_TIME
+                until = get_local_time() + mute_time
                 until_str = f"до {until.strftime('%Y-%m-%d %H:%M')} МСК"
                 await bot.restrict_chat_member(
                     message.chat.id,
                     user.id,
                     ChatPermissions(can_send_messages=False),
-                    until_date=MUTE_TIME,
+                    until_date=mute_time,
                 )
 
                 await session.commit()

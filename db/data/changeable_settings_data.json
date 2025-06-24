@@ -5,12 +5,13 @@
     "captcha_waitng": 60,
     "change_of_captcha_waiting": 10,
     "max_warn_restriction": "MUTE",
-    "max_warn_count": 3,
+    "max_warn_count": 1,
+    "max_warn_mute_time": 5,
     "remove_system_messages_waiting": 30,
     "remove_ban_notifications": 120,
     "max_count_in_page": 5,
-    "close_text": "ну вот корчое какой то текст сюда вводишь и норми",
-    "already_close_text": "окак ну ясно",
+    "close_text": "Чат закрыт",
+    "already_close_text": "Чат уже закрыт",
     "open_text": "Чат снова открыт",
     "already_open_text": "Чат уже открыт"
 }
