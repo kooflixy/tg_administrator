@@ -17,6 +17,7 @@ class ChangeableSettings(BaseModel):
     """
 
     captcha_status: bool = True
+    ban_if_captcha_not_passed: bool = True
     captcha_text: str = (
         "Привет, {user}! Нажми на кнопку, чтобы подтвердить, что ты не робот."
     )

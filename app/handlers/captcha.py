@@ -69,7 +69,8 @@ async def captcha_check(event: ChatMemberUpdated):
 
         # Кик пользователя. В aiogram нет отдельной функции кика, поэтому мы сначала удаляем пользоватея с помощью бана, а затем разбаниваем его
         await bot.ban_chat_member(event.chat.id, new_member.id)
-        await bot.unban_chat_member(event.chat.id, new_member.id)
+        if not changeable_settings.ban_if_captcha_not_passed:
+            await bot.unban_chat_member(event.chat.id, new_member.id)
 
         captcha_not_passed_message = await event.answer(
             f"{tag_user_text} не прошел капчу, за что был кикнут"
