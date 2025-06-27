@@ -149,3 +149,69 @@ async def warn_user(message: Message, command: CommandObject):
                 f"😮 {TextMarkup.tag_user(user.name, user.id)} получил свой {warn_count}-й варн.{reason_str}\n До превышения осталось {changeable_settings.max_warn_count - warn_count}",
                 message,
             )
+
+
+@router.message(Command("unwarn"))
+async def unwarn_user(message: Message, command: CommandObject):
+    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
+        return
+
+    if not await WarnRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
+        return
+
+    # Получение пользователя
+    user, warn_count = await get_user_id_name_reason(message, command)
+
+    if not warn_count:
+        warn_count = 1
+    else:
+        if warn_count.isdigit():
+            warn_count = int(warn_count)
+            if warn_count <= 0:
+                await RestChecker.reply_n_delete(
+                    "Количество снимаемых варнов не может быть меньше одного"
+                )
+                return
+        else:
+            await RestChecker.reply_n_delete("Неверный формат количества")
+            return
+
+    # Проверка на существование пользователя
+    if not await RestChecker.is_user_exists(user, message):
+        return
+
+    chat_member = await bot.get_chat_member(message.chat.id, user.id)
+
+    # Проверка, является ли пользователь участником группы
+    if not await RestChecker.is_user_member(chat_member, message):
+        return
+
+    # Проверка, является ли пользователь модератором чата
+    if await RestChecker.is_user_moderator(chat_member, message):
+        return
+
+    log.info(
+        "Попытка снять варны moderator=%s user=%r chat_id=%s warn_count=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+        warn_count,
+    )
+
+    async with async_session_factory() as session:
+        await WarnRestHandler.delete_warn_count(
+            session, message.chat.id, user.id, warn_count
+        )
+        await session.commit()
+
+    log.info(
+        "Сняты варны moderator=%s user=%r chat_id=%s warn_count=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+        warn_count,
+    )
+    await RestChecker.reply_n_delete(
+        f"Варны пользователя {TextMarkup.tag_user(user.name, user.id)} успешно удалены",
+        message,
+    )

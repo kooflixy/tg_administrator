@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.utils.rest_handler.base import BaseRestHandler
@@ -58,3 +58,15 @@ class WarnRestHandler(BaseRestHandler[WarnRestORM]):
         )
         warn_count = (await session.execute(query)).scalar()
         return warn_count
+
+    @classmethod
+    async def delete_warn_count(
+        cls, session: AsyncSession, chat_id: int, user_id: int, warn_count: int
+    ) -> None:
+        query = (
+            select(WarnRestORM)
+            .filter_by(chat_id=chat_id, user_id=user_id)
+            .limit(warn_count)
+        )
+        warn_list = (await session.execute(query)).scalars().all()
+        [await session.delete(warn) for warn in warn_list]
