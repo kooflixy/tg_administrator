@@ -5,6 +5,6 @@ from db.models import BanRestORM, ModeratorChatORM
 class BanRestHandler(BaseRestHandler[BanRestORM]):
     model_cls = BanRestORM
 
-    @staticmethod
-    def _get_perm(moderator: ModeratorChatORM) -> bool:
+    @classmethod
+    def _get_perm(cls, moderator: ModeratorChatORM) -> bool:
         return moderator.ban_perm

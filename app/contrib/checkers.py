@@ -27,7 +27,7 @@ def is_page_exists(page: int, lst: list) -> bool:
 class RestChecker:
     @staticmethod
     @validate_call
-    async def reply_n_delete(text: str, message: Message, interval: int = 10):
+    async def reply_n_delete(text: str, message: Message, interval: int = 1):
         """Отвечает пользователю и через время удаляет сообщение"""
         msg = await message.reply(text)
         await asyncio.sleep(interval)

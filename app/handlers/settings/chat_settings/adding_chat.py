@@ -110,7 +110,7 @@ async def input_chat_url(message: Message, state: FSMContext):
 
     await message.answer(f'Чат "<code>{chat.title}</code>" успешно добавлен')
 
-    await user_commands.settings_cmd(message, None)
+    await user_commands.settings_cmd(message)
     log.info(
         "%s добавил чат в отслеживаемые chat_url=%r",
         name_in_log.user(message),

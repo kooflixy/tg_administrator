@@ -5,7 +5,7 @@ from db.models import ModeratorChatORM
 class CloseRestHandler(BaseRestHandler[None]):
     model_cls = None
 
-    @staticmethod
+    @classmethod
     def _get_perm(moderator: ModeratorChatORM) -> bool:
         return moderator.close_perm
 

@@ -38,8 +38,8 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
                 await session.commit()
         return res
 
-    @staticmethod
-    def _get_perm(moderator: ModeratorChatORM) -> bool:
+    @classmethod
+    def _get_perm(cls, moderator: ModeratorChatORM) -> bool:
         return moderator.mute_perm
 
     @classmethod

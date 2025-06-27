@@ -5,8 +5,8 @@ from db.models import ModeratorChatORM
 class KickRestHandler(BaseRestHandler[None]):
     model_cls = None
 
-    @staticmethod
-    def _get_perm(moderator: ModeratorChatORM) -> bool:
+    @classmethod
+    def _get_perm(cls, moderator: ModeratorChatORM) -> bool:
         return moderator.kick_perm
 
     @classmethod

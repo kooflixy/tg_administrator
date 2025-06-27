@@ -27,13 +27,14 @@ async def global_error_handler(event: ErrorEvent):
     if isinstance(event.exception, TelegramNetworkError):
         pass
     else:
-        await bot.send_message(
-            settings.ADMIN_ID,
-            f"""Произошла непредвиденная ошибка, обратитесь разработчику
+        for adm_id in list(set([settings.ADMIN_ID, settings.DEVELOPER_ID])):
+            await bot.send_message(
+                adm_id,
+                f"""Произошла непредвиденная ошибка, обратитесь разработчику
 Ошибка: <b>{event.exception.__class__.__name__}</b>
 Описание: <b>{event.exception}</b>
 Время логирования: <b>{datetime.now()}</b>""",
-        )
+            )
 
     try:
         if event.update.callback_query:
@@ -55,7 +56,7 @@ async def global_error_handler(event: ErrorEvent):
                 )
             else:
                 msg = await event.update.message.answer(ERR_MESSAGE)
-            await asyncio.sleep(10)
+            await asyncio.sleep(1)
             await bot.delete_message(event.update.message.chat.id, msg.message_id)
             log.info(
                 "Пользователю было отправлено сообщение о произошедшей ошибке type=%r exception=%r",

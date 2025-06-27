@@ -73,7 +73,11 @@ def captcha_settings_ikb():
                     ).pack(),
                 ),
             ],
-            [InlineKeyboardButton(text="🔙Назад", callback_data=SettingsListCD().pack())],
+            [
+                InlineKeyboardButton(
+                    text="🔙Назад", callback_data=SettingsListCD().pack()
+                )
+            ],
         ]
     )
     return kb

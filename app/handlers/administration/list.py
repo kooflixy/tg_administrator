@@ -19,7 +19,7 @@ log = getLogger(__name__)
 
 router = Router()
 
-DELETE_TIME = 240
+DELETE_TIME = 60
 
 
 @router.message(Command("banlist"))

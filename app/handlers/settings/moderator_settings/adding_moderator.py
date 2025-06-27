@@ -113,4 +113,4 @@ async def input_moderator_username(message: Message, state: FSMContext):
         user.id,
     )
 
-    await user_commands.settings_cmd(message, None)
+    await user_commands.settings_cmd(message)

@@ -28,6 +28,7 @@ class Settings(BaseModel):
     TELETHON_API_HASH: str = os.getenv("TELETHON_API_HASH")
 
     ADMIN_ID: int = int(os.getenv("ADMIN_ID"))
+    DEVELOPER_ID: int = int(os.getenv("DEVELOPER_ID"))
     TG_BOT_API_TOKEN: str = os.getenv("TG_BOT_API_TOKEN")
 
 

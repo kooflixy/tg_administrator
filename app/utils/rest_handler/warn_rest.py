@@ -21,8 +21,8 @@ class WarnRestHandler(BaseRestHandler[WarnRestORM]):
             res = (await session.execute(query)).scalars().all()
             return res
 
-    @staticmethod
-    def _get_perm(moderator: ModeratorChatORM) -> bool:
+    @classmethod
+    def _get_perm(cls, moderator: ModeratorChatORM) -> bool:
         return moderator.warn_perm
 
     @classmethod
