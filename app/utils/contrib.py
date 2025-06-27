@@ -150,6 +150,8 @@ async def get_user_id_name_period(
             return None, MUTE_FOREVER
         if not period_text:
             return user, MUTE_FOREVER
+        if not period_text.isdigit():
+            return None, MUTE_FOREVER
         period = timedelta(seconds=time_text_to_seconds(period_text))
 
     return user, period

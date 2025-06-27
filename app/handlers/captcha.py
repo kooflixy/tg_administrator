@@ -8,7 +8,12 @@ from app.bot_obj import bot
 from app.contrib.for_logging import name_in_log
 from app.contrib.text_markup import TextMarkup
 from app.keyboards.captcha_btn import CaptchaPassedCD, captcha_btn_ikb
+from app.utils.rest_handler.ban_rest import BanRestHandler
 from config import changeable_settings
+from db.database import async_session_factory
+
+SLEEP_TIME = 2  # в секундах
+DELETE_MSG_TIME = 1
 
 log = getLogger(__name__)
 
@@ -58,8 +63,11 @@ async def captcha_check(event: ChatMemberUpdated):
     )
     log.debug("%s было предложено пройти капчу", name_in_log.user(event))
 
-    # Ждём отведенный срок
-    await asyncio.sleep(changeable_settings.captcha_waitng)
+    # Ждём отведенный срок. Сделано через for, потому что если пользователь прошел, вышел и зашел снова, то если он зайдет до истечения этого sleep, его удалят с прошлой првоерки
+    for _ in range(changeable_settings.captcha_waitng // SLEEP_TIME):
+        await asyncio.sleep(SLEEP_TIME)
+        if not_passed_captcha_users.is_captha_passed(new_member.id):
+            return
 
     # Проверка, успел ли пользователь нажать на кнопку капчи. Если нет, то кикаем
     if not not_passed_captcha_users.is_captha_passed(new_member.id):
@@ -70,16 +78,30 @@ async def captcha_check(event: ChatMemberUpdated):
         # Кик пользователя. В aiogram нет отдельной функции кика, поэтому мы сначала удаляем пользоватея с помощью бана, а затем разбаниваем его
         await bot.ban_chat_member(event.chat.id, new_member.id)
         if not changeable_settings.ban_if_captcha_not_passed:
+            # если мы всё-таки хотим забанить пользователя :(
             await bot.unban_chat_member(event.chat.id, new_member.id)
+        else:
+            async with async_session_factory() as session:
+                await BanRestHandler.apply_restriction(
+                    session,
+                    moderator_id=bot.id,
+                    chat_id=event.chat.id,
+                    user_id=event.from_user.id,
+                )
+                await session.commit()
+
+        rest_str = (
+            "забанен" if changeable_settings.ban_if_captcha_not_passed else "кикнут"
+        )
 
         captcha_not_passed_message = await event.answer(
-            f"{tag_user_text} не прошел капчу, за что был кикнут"
+            f"{tag_user_text} не прошел капчу, за что был {rest_str}"
         )
         await bot.delete_message(
             chat_id=event.chat.id, message_id=captcha_msg.message_id
         )  # Удаляем сообщение с капчой
 
-        await asyncio.sleep(10)
+        await asyncio.sleep(DELETE_MSG_TIME)
         await bot.delete_message(
             chat_id=event.chat.id, message_id=captcha_not_passed_message.message_id
         )  # Удаляем сообщение о непрохождении капчи
@@ -107,7 +129,7 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
         chat_id=callback.message.chat.id, message_id=callback_data.captcha_msg_id
     )  # Удаляем сообщение с капчой
 
-    await asyncio.sleep(10)
+    await asyncio.sleep(DELETE_MSG_TIME)
 
     await bot.delete_message(
         chat_id=welcome_message.chat.id, message_id=welcome_message.message_id

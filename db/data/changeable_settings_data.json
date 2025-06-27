@@ -1,5 +1,6 @@
 {
     "captcha_status": true,
+    "ban_if_captcha_not_passed": true,
     "captcha_text": "Привет, {user}! Нажми на кнопку, чтобы подтвердить, что ты не робот.",
     "captcha_button_text": "Нажми на  меня!",
     "captcha_waitng": 60,
