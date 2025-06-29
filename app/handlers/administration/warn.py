@@ -6,12 +6,12 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import ChatPermissions, Message
 
 from app.bot_obj import bot
-from app.contrib.checkers import RestChecker
-from app.contrib.for_logging import name_in_log
-from app.contrib.text_markup import TextMarkup
+from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name_reason
+from app.utils.for_logging import name_in_log
 from app.utils.rest_handler import MuteRestHandler, WarnRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
+from app.utils.text_markup import TextMarkup
 from app.utils.time import get_local_time
 from config import changeable_settings
 from db.classes import ActionTypeEnum

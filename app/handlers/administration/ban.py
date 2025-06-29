@@ -6,12 +6,12 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import ChatMemberBanned, Message
 
 from app.bot_obj import bot
-from app.contrib.checkers import RestChecker
-from app.contrib.for_logging import name_in_log
-from app.contrib.telthon_manager import TelethonManager
-from app.contrib.text_markup import TextMarkup
+from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name
+from app.utils.for_logging import name_in_log
 from app.utils.rest_handler import BanRestHandler
+from app.utils.telthon_manager import TelethonManager
+from app.utils.text_markup import TextMarkup
 from db.database import async_session_factory
 from db.queries import ChatORMHandler, ModeratorChatORMHandler
 

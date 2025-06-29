@@ -3,8 +3,6 @@ from logging import getLogger
 from aiogram import Router
 from aiogram.types import CallbackQuery
 
-from app.contrib.for_logging import name_in_log
-from app.contrib.text_markup import TextMarkup
 from app.keyboards.settings.moderator import (
     ChangeModeratorChatPermissionCD,
     ModeratorChatDetailsCD,
@@ -14,6 +12,8 @@ from app.keyboards.settings.moderator import (
     moderator_chat_list_ikb,
 )
 from app.utils.answer_templates import error_cb_ans
+from app.utils.for_logging import name_in_log
+from app.utils.text_markup import TextMarkup
 from db.database import async_session_factory
 from db.queries import ModeratorChatORMHandler
 

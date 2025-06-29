@@ -4,8 +4,8 @@ from aiogram import Router
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
 from aiogram.types import ChatMemberUpdated
 
-from app.contrib.for_logging import name_in_log
 from app.handlers.captcha import captcha_check
+from app.utils.for_logging import name_in_log
 from config import changeable_settings
 from db.queries import ChatORMHandler
 

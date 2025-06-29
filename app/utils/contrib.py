@@ -9,7 +9,7 @@ from aiogram.filters import CommandObject
 from aiogram.types import ChatPermissions, Message
 
 from app.bot_obj import bot
-from app.contrib.telthon_manager import TelethonManager
+from app.utils.telthon_manager import TelethonManager
 
 MUTE_FOREVER = timedelta(days=366)
 

@@ -5,9 +5,9 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import ChatPermissions, Message
 
 from app.bot_obj import bot
-from app.contrib.checkers import RestChecker
-from app.contrib.for_logging import name_in_log
+from app.utils.checkers import RestChecker
 from app.utils.contrib import current_to_new_permissions
+from app.utils.for_logging import name_in_log
 from app.utils.rest_handler.close_rest import CloseRestHandler
 from config import changeable_settings
 from db.database import async_session_factory

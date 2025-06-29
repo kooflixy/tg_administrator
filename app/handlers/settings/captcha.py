@@ -4,10 +4,10 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from app.contrib.for_logging import name_in_log
 from app.handlers.user_commands import settings_cmd
 from app.keyboards.settings.captcha import *
 from app.keyboards.settings_menu import SettingsType, SettingsTypeCD
+from app.utils.for_logging import name_in_log
 from app.utils.states import ChangeCaptchaTextForm
 from config import changeable_settings
 

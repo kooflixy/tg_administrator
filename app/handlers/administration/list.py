@@ -5,13 +5,13 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from app.bot_obj import bot
-from app.contrib.checkers import RestChecker
-from app.contrib.telthon_manager import TelethonManager
-from app.contrib.text_markup import TextMarkup
+from app.utils.checkers import RestChecker
 from app.utils.contrib import MUTE_FOREVER, get_user_id_name
 from app.utils.rest_handler.ban_rest import BanRestHandler
 from app.utils.rest_handler.mute_rest import MuteRestHandler
 from app.utils.rest_handler.warn_rest import WarnRestHandler
+from app.utils.telthon_manager import TelethonManager
+from app.utils.text_markup import TextMarkup
 from app.utils.time import utc_to_local
 from db.queries.chat_orm import ChatORMHandler
 

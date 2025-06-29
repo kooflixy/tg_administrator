@@ -3,13 +3,13 @@ from logging import getLogger
 from aiogram import Router
 from aiogram.types import CallbackQuery
 
-from app.contrib.for_logging import name_in_log
 from app.keyboards.settings.moderator import (
     AddModeratorChatCD,
     AddModeratorChatListCD,
     add_moderator_chat_list_ikb,
 )
 from app.utils.answer_templates import error_cb_ans
+from app.utils.for_logging import name_in_log
 from db.database import async_session_factory
 from db.queries.chat_orm import ChatORMHandler
 from db.queries.moderator_chat_orm import ModeratorChatORMHandler

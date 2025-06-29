@@ -4,9 +4,9 @@ from aiogram import F, Router
 from aiogram.filters import Command, CommandObject, CommandStart, or_f
 from aiogram.types import CallbackQuery, Message
 
-from app.contrib.for_logging import name_in_log
 from app.keyboards.settings_menu import SettingsListCD, settings_menu_ikb
 from app.keyboards.user_commands import menu_rkb
+from app.utils.for_logging import name_in_log
 from config import settings
 
 log = getLogger(__name__)

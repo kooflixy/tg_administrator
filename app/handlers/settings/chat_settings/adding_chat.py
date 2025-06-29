@@ -5,11 +5,11 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from telethon import types
 
-from app.contrib.for_logging import name_in_log
-from app.contrib.telthon_manager import TelethonManager
 from app.handlers import user_commands
 from app.keyboards.settings.chat import AddChatCD
+from app.utils.for_logging import name_in_log
 from app.utils.states import AddChatForm
+from app.utils.telthon_manager import TelethonManager
 from db.database import async_session_factory
 from db.queries.chat_orm import ChatORMHandler
 

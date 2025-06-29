@@ -5,10 +5,10 @@ from aiogram import Router
 from aiogram.types import CallbackQuery, ChatMemberUpdated
 
 from app.bot_obj import bot
-from app.contrib.for_logging import name_in_log
-from app.contrib.text_markup import TextMarkup
 from app.keyboards.captcha_btn import CaptchaPassedCD, captcha_btn_ikb
+from app.utils.for_logging import name_in_log
 from app.utils.rest_handler.ban_rest import BanRestHandler
+from app.utils.text_markup import TextMarkup
 from config import changeable_settings
 from db.database import async_session_factory
 

@@ -5,12 +5,12 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from telethon import types
 
-from app.contrib.for_logging import name_in_log
-from app.contrib.telthon_manager import TelethonManager
-from app.contrib.text_markup import TextMarkup
 from app.handlers import user_commands
 from app.keyboards.settings.moderator import AddModeratorCD
+from app.utils.for_logging import name_in_log
 from app.utils.states import AddModeratorForm
+from app.utils.telthon_manager import TelethonManager
+from app.utils.text_markup import TextMarkup
 from db.database import async_session_factory
 from db.queries.moderator_orm import ModeratorORMHandler
 
