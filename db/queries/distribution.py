@@ -2,7 +2,7 @@ import textwrap
 from datetime import datetime, timedelta, timezone
 from logging import getLogger
 
-from sqlalchemy import delete
+from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.models import DistributionORM
@@ -30,3 +30,14 @@ class DistributionORMHandler(BaseORMHandler[DistributionORM]):
             created_at=created_at,
             name=name,
         )
+
+    @classmethod
+    async def change_activity(cls, session: AsyncSession, dist_id: int):
+
+        query = text(
+            f"""UPDATE {cls.model_cls.__tablename__}
+            SET is_active = NOT is_active
+            WHERE id={dist_id}"""
+        )
+
+        await session.execute(query)

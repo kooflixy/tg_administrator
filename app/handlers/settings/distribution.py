@@ -2,6 +2,7 @@ from datetime import timedelta
 from logging import getLogger
 
 from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -9,7 +10,14 @@ from aiogram.types import CallbackQuery, Message
 from app.bot_obj import bot
 from app.handlers.user_commands import settings_cmd
 from app.keyboards.settings.captcha import *
-from app.keyboards.settings.distribution import distribution_list_ikb
+from app.keyboards.settings.distribution import (
+    ChangeDistributionActivityCD,
+    DistributionDetailsCD,
+    RemoveDistributionCD,
+    ShowDistributionCD,
+    distribution_details_ikb,
+    distribution_list_ikb,
+)
 from app.keyboards.settings_menu import DistributionListCD
 from app.utils.answer_templates import error_cb_ans
 from app.utils.contrib import time_text_to_seconds
@@ -82,4 +90,81 @@ async def get_distribution_list(
         "%s получил страницу списка рассылок page=%s",
         name_in_log.user(callback),
         callback_data.cur_page,
+    )
+
+
+@router.callback_query(DistributionDetailsCD.filter())
+async def get_distribution_details(
+    callback: CallbackQuery, callback_data: DistributionDetailsCD
+):
+    """Отображение деталей рассылки"""
+
+    async with async_session_factory() as session:
+        dist = await DistributionORMHandler.get(session, callback_data.dist_id)
+
+    if not dist:
+        await callback.answer("Такой рассылки нет")
+        return
+
+    await callback.message.edit_text(
+        text=f"""Название: {dist.name}
+Интервал: {dist.interval}
+""",
+        reply_markup=distribution_details_ikb(
+            dist=dist, back_page=callback_data.back_page
+        ),
+    )
+
+
+@router.callback_query(ShowDistributionCD.filter())
+async def show_distribution(callback: CallbackQuery, callback_data: ShowDistributionCD):
+    """Отображение сообщения рассылки"""
+
+    async with async_session_factory() as session:
+        dist = await DistributionORMHandler.get(session, callback_data.dist_id)
+
+    if not dist:
+        await callback.answer("Такой рассылки нет")
+        return
+
+    try:
+        await bot.copy_message(
+            callback.message.chat.id, callback.message.chat.id, dist.msg_id
+        )
+    except TelegramBadRequest:
+        await callback.answer("Сообщение было удалено")
+
+
+@router.callback_query(ChangeDistributionActivityCD.filter())
+async def change_distribution_activity(
+    callback: CallbackQuery, callback_data: ChangeDistributionActivityCD
+):
+    """Изменение активности рассылки"""
+
+    async with async_session_factory() as session:
+        await DistributionORMHandler.change_activity(session, callback_data.dist_id)
+        await session.commit()
+        dist = await DistributionORMHandler.get(session, callback_data.dist_id)
+
+    await callback.message.edit_reply_markup(
+        reply_markup=distribution_details_ikb(
+            back_page=callback_data.back_page, dist=dist
+        )
+    )
+
+
+@router.callback_query(RemoveDistributionCD.filter())
+async def remove_distribtution(
+    callback: CallbackQuery, callback_data: RemoveDistributionCD
+):
+    """Удаление рассылки"""
+
+    async with async_session_factory() as session:
+        await DistributionORMHandler.remove(session, callback_data.dist_id)
+        await session.commit()
+
+    await callback.answer("Рассылка удалена")
+
+    await get_distribution_list(
+        callback, DistributionListCD(cur_page=callback_data.back_page)
     )

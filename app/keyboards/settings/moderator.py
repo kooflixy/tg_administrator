@@ -94,7 +94,7 @@ def moderator_details_ikb(moderator_id: int, back_page: int = 1):
 
     builder = InlineKeyboardBuilder()
     builder.button(
-        text="Чаты",
+        text="📋Чаты",
         callback_data=ModeratorChatListCD(cur_page=1, moderator_id=moderator_id).pack(),
     )
     builder.button(

@@ -16,6 +16,11 @@ class DistIdArg:
 
 
 @dataclass
+class DistMsgIdArg:
+    msg_id: int
+
+
+@dataclass
 class CurrentPageArg:
     cur_page: int = 1
 
