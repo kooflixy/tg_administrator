@@ -41,7 +41,7 @@ class DistributionORM(Base):
 
     name: Mapped[str]
     msg_id: Mapped[int] = mapped_column(BigInteger)
-    last_msg_id: Mapped[int] = mapped_column(BigInteger)
+    last_msg_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     interval: Mapped[timedelta]
     next_dist_date: Mapped[datetime]
 
