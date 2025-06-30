@@ -1,5 +1,6 @@
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.keyboards.contrib import *
 
@@ -13,6 +14,9 @@ class ChatListCD(CallbackData, CurrentPageArg, prefix="chat_list"): ...
 class ModeratorListCD(CallbackData, CurrentPageArg, prefix="moderator_list"): ...
 
 
+class DistributionListCD(CallbackData, CurrentPageArg, prefix="dist_list"): ...
+
+
 class SettingsType:
     CAPTCHA = "captcha"
     WARN = "warn"
@@ -23,26 +27,16 @@ class SettingsTypeCD(CallbackData, prefix="setts_type"):
 
 
 def settings_menu_ikb():
-    kb = InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text="📋Чаты", callback_data=ChatListCD().pack())],
-            [
-                InlineKeyboardButton(
-                    text="👤Модераторы", callback_data=ModeratorListCD().pack()
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="✅Капча",
-                    callback_data=SettingsTypeCD(type=SettingsType.CAPTCHA).pack(),
-                )
-            ],
-            [
-                InlineKeyboardButton(
-                    text="🚫Варны",
-                    callback_data=SettingsTypeCD(type=SettingsType.WARN).pack(),
-                )
-            ],
-        ]
+    builder = InlineKeyboardBuilder()
+    builder.button(text="📋Чаты", callback_data=ChatListCD().pack())
+    builder.button(text="👤Модераторы", callback_data=ModeratorListCD().pack())
+    builder.button(
+        text="✅Капча", callback_data=SettingsTypeCD(type=SettingsType.CAPTCHA).pack()
     )
-    return kb
+    builder.button(text="💬Рассылка", callback_data=DistributionListCD().pack())
+    builder.button(
+        text="🚫Варны", callback_data=SettingsTypeCD(type=SettingsType.WARN).pack()
+    )
+    builder.adjust(*([1] * 5))
+
+    return builder.as_markup()

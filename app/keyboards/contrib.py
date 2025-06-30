@@ -11,6 +11,11 @@ class ModerIdArg:
 
 
 @dataclass
+class DistIdArg:
+    dist_id: int
+
+
+@dataclass
 class CurrentPageArg:
     cur_page: int = 1
 
