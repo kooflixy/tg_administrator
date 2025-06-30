@@ -1,9 +1,9 @@
 import enum
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Annotated, Literal, Optional
+from typing import Annotated, List, Literal, Optional
 
-from sqlalchemy import BigInteger, Boolean, ForeignKey, Interval
+from sqlalchemy import BigInteger, Boolean, Column, ForeignKey, Interval, Table
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -18,10 +18,38 @@ class Adm:
     name: Mapped[str]
 
 
+class DistributionChatORM(Base):
+    __tablename__ = "distibution_chat_table"
+
+    chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))
+    chat: Mapped["ChatORM"] = relationship(back_populates="distributions")
+    distribution_id: Mapped[int] = mapped_column(ForeignKey("distribution_table.id"))
+    distribution: Mapped["DistributionORM"] = relationship(back_populates="chats")
+
+
 class ChatORM(Adm, Base):
     __tablename__ = "chat_table"
 
     moderators: Mapped[list["ModeratorChatORM"]] = relationship(lazy="joined")
+    distributions: Mapped[list["DistributionChatORM"]] = relationship(
+        back_populates="chat"
+    )
+
+
+class DistributionORM(Base):
+    __tablename__ = "distribution_table"
+
+    name: Mapped[str]
+    msg_id: Mapped[int] = mapped_column(BigInteger)
+    last_msg_id: Mapped[int] = mapped_column(BigInteger)
+    interval: Mapped[timedelta]
+    next_dist_date: Mapped[datetime]
+
+    chats: Mapped[list["DistributionChatORM"]] = relationship(
+        back_populates="distribution"
+    )
+
+    is_active: Mapped[bool] = mapped_column(default=False)
 
 
 class ModeratorORM(Adm, Base):
@@ -78,12 +106,3 @@ class MuteRestORM(Base, UserRest):
 class WarnRestORM(Base, UserRest):
     __tablename__ = "warn_rest_table"
     reason: Mapped[Optional[str]]
-
-
-class DistributionsORM(Base):
-    __tablename__ = "distribution_table"
-
-    chat_id: Mapped[int] = mapped_column(BigInteger)
-    msg_id: Mapped[int] = mapped_column(BigInteger)
-    interval: Mapped[timedelta]
-    next_dist_date: Mapped[datetime]
