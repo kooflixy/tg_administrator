@@ -1,6 +1,6 @@
 import enum
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Annotated, Literal, Optional
 
 from sqlalchemy import BigInteger, Boolean, ForeignKey, Interval
@@ -84,4 +84,5 @@ class DistributionsORM(Base):
     __tablename__ = "distribution_table"
 
     chat_id: Mapped[int] = mapped_column(BigInteger)
-    interval: Mapped[int]
+    interval: Mapped[timedelta]
+    next_dist_date: Mapped[datetime]
