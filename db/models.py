@@ -84,5 +84,6 @@ class DistributionsORM(Base):
     __tablename__ = "distribution_table"
 
     chat_id: Mapped[int] = mapped_column(BigInteger)
+    msg_id: Mapped[int] = mapped_column(BigInteger)
     interval: Mapped[timedelta]
     next_dist_date: Mapped[datetime]
