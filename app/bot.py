@@ -28,8 +28,13 @@ async def main():
 
         settings.set_text.router,
         settings.captcha.router,
-        settings.distribution.router,
+        # settings.distribution.router,
         settings.warn.router,
+
+        settings.distribution_settings.distribution.router,
+        settings.distribution_settings.adding_distribution.router,
+        settings.distribution_settings.distribution_chat.router,
+        settings.distribution_settings.adding_distribution_chat.router,
 
         settings.chat_settings.chat.router,
         settings.chat_settings.adding_chat.router,

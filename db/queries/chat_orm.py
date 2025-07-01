@@ -5,7 +5,7 @@ from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import async_session_factory
-from db.models import ChatORM, ModeratorChatORM
+from db.models import ChatORM, DistributionChatORM, ModeratorChatORM
 from db.queries import BaseORMHandler
 
 log = getLogger(__name__)
@@ -31,10 +31,12 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
     @classmethod
     async def remove(cls, session: AsyncSession, pk_value) -> None:
         """Удаляет выбранную запись"""
-        query1 = delete(ModeratorChatORM).filter(ModeratorChatORM.chat_id == pk_value)
-        query2 = delete(cls.model_cls).filter(cls.model_cls.id == pk_value)
+        query1 = delete(ModeratorChatORM).filter_by(chat_id=pk_value)
+        query2 = delete(DistributionChatORM).filter_by(chat_id=pk_value)
+        query3 = delete(cls.model_cls).filter_by(id=pk_value)
         await session.execute(query1)
         await session.execute(query2)
+        await session.execute(query3)
 
     @classmethod
     async def get_unassigned_chat_page(

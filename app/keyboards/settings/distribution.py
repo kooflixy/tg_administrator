@@ -7,19 +7,13 @@ from app.keyboards.settings_menu import DistributionListCD, SettingsListCD
 from app.utils.pagination import get_paginator_ikb
 from db.models import ChatORM, DistributionChatORM, DistributionORM
 
+# действия с рассылками
+
 
 class DistributionDetailsCD(CallbackData, DistIdArg, BackPageArg, prefix="dist_d"): ...
 
 
-class DistributionChatListCD(
-    CallbackData, DistIdArg, CurrentPageArg, prefix="dist_ch_l"
-): ...
-
-
 class RemoveDistributionCD(CallbackData, DistIdArg, BackPageArg, prefix="r_dist"): ...
-
-
-class ShowDistributionCD(CallbackData, DistMsgIdArg, prefix="s_dist"): ...
 
 
 class ChangeDistributionActivityCD(
@@ -27,7 +21,20 @@ class ChangeDistributionActivityCD(
 ): ...
 
 
-class ChangeDistributionIntervalCD(CallbackData, DistIdArg, prefix="ch_i_dist"): ...
+class ShowDistributionCD(CallbackData, DistMsgIdArg, prefix="s_dist"): ...
+
+
+# действия с чатами рассылок
+
+
+class DistributionChatDetailsCD(
+    CallbackData, DistIdArg, ChatIDArg, BackPageArg, prefix="dist_ch_d"
+): ...
+
+
+class DistributionChatListCD(
+    CallbackData, DistIdArg, CurrentPageArg, prefix="dist_ch_l"
+): ...
 
 
 class AddDistributionChatListCD(

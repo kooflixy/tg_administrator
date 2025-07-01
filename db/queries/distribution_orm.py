@@ -5,7 +5,7 @@ from logging import getLogger
 from sqlalchemy import delete, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models import DistributionORM
+from db.models import DistributionChatORM, DistributionORM
 from db.queries import BaseORMHandler
 
 log = getLogger(__name__)
@@ -30,6 +30,14 @@ class DistributionORMHandler(BaseORMHandler[DistributionORM]):
             created_at=created_at,
             name=name,
         )
+
+    @classmethod
+    async def remove(cls, session: AsyncSession, pk_value) -> None:
+        """Удаляет выбранную запись"""
+        query1 = delete(DistributionChatORM).filter_by(distribution_id=pk_value)
+        query2 = delete(cls.model_cls).filter_by(id=pk_value)
+        await session.execute(query1)
+        await session.execute(query2)
 
     @classmethod
     async def change_activity(cls, session: AsyncSession, dist_id: int):

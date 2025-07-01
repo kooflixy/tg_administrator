@@ -110,7 +110,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
     @classmethod
     async def remove(cls, session: AsyncSession, pk_value) -> None:
         """Удаляет выбранную запись"""
-        query = delete(cls.model_cls).filter(cls.model_cls.id == pk_value)
+        query = delete(cls.model_cls).filter_by(id=pk_value)
 
         await session.execute(query)
 
