@@ -66,6 +66,11 @@ async def get_distribution_details(
     callback: CallbackQuery, callback_data: DistributionDetailsCD
 ):
     """Отображение деталей рассылки"""
+    log.debug(
+        "%s запросил детали рассылки dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
+    )
 
     async with async_session_factory() as session:
         dist = await DistributionORMHandler.get(session, callback_data.dist_id)
@@ -82,6 +87,11 @@ ID: {dist.id}
         reply_markup=distribution_details_ikb(
             dist=dist, back_page=callback_data.back_page
         ),
+    )
+    log.info(
+        "%s получил детали рассылки dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
     )
 
 
@@ -102,6 +112,11 @@ async def change_distribution_activity(
     callback: CallbackQuery, callback_data: ChangeDistributionActivityCD
 ):
     """Изменение активности рассылки"""
+    log.debug(
+        "%s попытался поменять активность рассылки dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
+    )
 
     async with async_session_factory() as session:
         await DistributionORMHandler.change_activity(session, callback_data.dist_id)
@@ -113,6 +128,11 @@ async def change_distribution_activity(
             back_page=callback_data.back_page, dist=dist
         )
     )
+    log.info(
+        "%s поменял активность рассылки dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
+    )
 
 
 @router.callback_query(RemoveDistributionCD.filter())
@@ -120,6 +140,11 @@ async def remove_distribtution(
     callback: CallbackQuery, callback_data: RemoveDistributionCD
 ):
     """Удаление рассылки"""
+    log.debug(
+        "%s пытается удалить рассылку dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
+    )
 
     async with async_session_factory() as session:
         await DistributionORMHandler.remove(session, callback_data.dist_id)
@@ -129,6 +154,11 @@ async def remove_distribtution(
 
     await get_distribution_list(
         callback, DistributionListCD(cur_page=callback_data.back_page)
+    )
+    log.info(
+        "%s удалил рассылку dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
     )
 
 
@@ -146,6 +176,12 @@ async def set_distribution_interval(message: Message, command: CommandObject):
     if not dist_id.isdigit():
         return
     dist_id = int(dist_id)
+
+    log.debug(
+        "%s пытается поменять интервал рассылки dist_id=%s",
+        name_in_log.user(message),
+        dist_id,
+    )
 
     interval = time_text_to_seconds(" ".join(command.args.split()[1:]))
 
@@ -165,3 +201,9 @@ async def set_distribution_interval(message: Message, command: CommandObject):
             f"Интервал рассылки <b>{dist.name}</b> изменен на {interval}"
         )
         await session.commit()
+
+    log.info(
+        "%s поменял интервал рассылки dist_id=%s",
+        name_in_log.user(message),
+        dist_id,
+    )

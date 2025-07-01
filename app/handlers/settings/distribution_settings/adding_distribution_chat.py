@@ -8,6 +8,7 @@ from app.keyboards.settings.distribution import (
     AddDistributionChatListCD,
     add_distribution_chat_list_ikb,
 )
+from app.utils.for_logging import name_in_log
 from db.database import async_session_factory
 from db.queries.distribution_chat_orm import DistributionChatORMHandler
 
@@ -20,6 +21,12 @@ router = Router()
 async def get_add_distribution_chat_list(
     callback: CallbackQuery, callback_data: AddDistributionChatListCD
 ):
+    log.debug(
+        "%s пытается получить %s страницу чатов возможных для добавления в рассылку dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.cur_page,
+        callback_data.dist_id,
+    )
 
     # Получение списка чатов для страницы
     async with async_session_factory() as session:
@@ -40,12 +47,24 @@ async def get_add_distribution_chat_list(
             is_last_page=is_last_page,
         ),
     )
+    log.info(
+        "%s получил %s страницу чатов возможных для добавления в рассылку dist_id=%s",
+        name_in_log.user(callback),
+        callback_data.cur_page,
+        callback_data.dist_id,
+    )
 
 
 @router.callback_query(AddDistributionChatCD.filter())
 async def add_distribution_chat(
     callback: CallbackQuery, callback_data: AddDistributionChatCD
 ):
+    log.debug(
+        "%s пытается добавить чат в рассылку dist_id=%s chat_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
+        callback_data.chat_id,
+    )
 
     async with async_session_factory() as session:
         await DistributionChatORMHandler.insert(
@@ -60,4 +79,11 @@ async def add_distribution_chat(
         AddDistributionChatListCD(
             cur_page=callback_data.back_page, back_page=1, dist_id=callback_data.dist_id
         ),
+    )
+
+    log.info(
+        "%s добавил чат в рассылку dist_id=%s chat_id=%s",
+        name_in_log.user(callback),
+        callback_data.dist_id,
+        callback_data.chat_id,
     )

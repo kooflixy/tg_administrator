@@ -6,6 +6,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
 from app.utils.contrib import time_text_to_seconds
+from app.utils.for_logging import name_in_log
 from config import settings
 from db.database import async_session_factory
 from db.queries.distribution_orm import DistributionORMHandler
@@ -41,4 +42,9 @@ async def add_dist(message: Message, command: CommandObject):
         )
         await session.commit()
 
-    await message.answer("Рассылка успешно добавлена!")
+        await message.answer("Рассылка успешно добавлена!")
+
+    log.info(
+        "%s добавил рассылку",
+        name_in_log.user(message),
+    )
