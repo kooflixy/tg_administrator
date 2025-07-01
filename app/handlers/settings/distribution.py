@@ -12,9 +12,11 @@ from app.handlers.user_commands import settings_cmd
 from app.keyboards.settings.captcha import *
 from app.keyboards.settings.distribution import (
     ChangeDistributionActivityCD,
+    DistribtutionChatListCD,
     DistributionDetailsCD,
     RemoveDistributionCD,
     ShowDistributionCD,
+    distribution_chat_list_ikb,
     distribution_details_ikb,
     distribution_list_ikb,
 )
@@ -24,7 +26,8 @@ from app.utils.contrib import time_text_to_seconds
 from app.utils.for_logging import name_in_log
 from config import settings
 from db.database import async_session_factory
-from db.queries.distribution import DistributionORMHandler
+from db.queries.distribution_chat_orm import DistributionChatORMHandler
+from db.queries.distribution_orm import DistributionORMHandler
 
 log = getLogger(__name__)
 
@@ -167,4 +170,25 @@ async def remove_distribtution(
 
     await get_distribution_list(
         callback, DistributionListCD(cur_page=callback_data.back_page)
+    )
+
+
+@router.callback_query(DistribtutionChatListCD.filter())
+async def get_distribution_chat_list(
+    callback: CallbackQuery, callback_data: DistribtutionChatListCD
+):
+    # Получение списка чатов для страницы
+    async with async_session_factory() as session:
+        chat_list = await DistributionChatORMHandler.get_page(
+            session, callback_data.cur_page, callback_data.dist_id
+        )
+        is_last_page = await DistributionChatORMHandler.is_last_page(
+            session, callback_data.cur_page, callback_data.dist_id
+        )
+
+    await callback.message.edit_text(
+        "📋Список чатов рассылки:",
+        reply_markup=distribution_chat_list_ikb(
+            chat_list, callback_data.cur_page, is_last_page
+        ),
     )
