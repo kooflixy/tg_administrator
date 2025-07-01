@@ -5,13 +5,13 @@ from app.keyboards.contrib import *
 from app.keyboards.contrib import back_ibtn
 from app.keyboards.settings_menu import DistributionListCD, SettingsListCD
 from app.utils.pagination import get_paginator_ikb
-from db.models import DistributionChatORM, DistributionORM
+from db.models import ChatORM, DistributionChatORM, DistributionORM
 
 
 class DistributionDetailsCD(CallbackData, DistIdArg, BackPageArg, prefix="dist_d"): ...
 
 
-class DistribtutionChatListCD(
+class DistributionChatListCD(
     CallbackData, DistIdArg, CurrentPageArg, prefix="dist_ch_l"
 ): ...
 
@@ -32,6 +32,25 @@ class ChangeDistributionIntervalCD(CallbackData, DistIdArg, prefix="ch_i_dist"):
 
 class DistributionChatDetailsCD(
     CallbackData, DistIdArg, ChatIDArg, BackPageArg, prefix="dist_ch_d"
+): ...
+
+
+class AddDistributionChatListCD(
+    CallbackData, DistIdArg, BackPageArg, CurrentPageArg, prefix="add_dist_ch_l"
+): ...
+
+
+class AddDistributionChatCD(
+    CallbackData, DistIdArg, ChatIDArg, BackPageArg, prefix="add_dist_ch"
+): ...
+
+
+class RemoveDistributionChatCD(
+    CallbackData,
+    DistIdArg,
+    ChatIDArg,
+    BackPageArg,
+    prefix="remove_dist_ch",
 ): ...
 
 
@@ -60,7 +79,7 @@ def distribution_details_ikb(dist: DistributionORM, back_page: int = 1):
     builder = InlineKeyboardBuilder()
     builder.button(
         text="📋Чаты",
-        callback_data=DistribtutionChatListCD(cur_page=1, dist_id=dist.id).pack(),
+        callback_data=DistributionChatListCD(cur_page=1, dist_id=dist.id).pack(),
     )
     builder.button(
         text="⏳Изменить интервал",
@@ -84,34 +103,64 @@ def distribution_details_ikb(dist: DistributionORM, back_page: int = 1):
 
 
 def distribution_chat_list_ikb(
-    dist_list: list[DistributionChatORM], page: int, is_last_page: bool
+    dist_list: list[DistributionChatORM], page: int, dist_id: int, is_last_page: bool
 ):
     builder = InlineKeyboardBuilder()
     builder.button(
         text="➕Добавить чат",
-        callback_data="empty",
-        # callback_data=AddModeratorChatListCD(
-        #     cur_page=1, back_page=page, moderator_id=moderator_id
-        # ).pack(),
+        callback_data=AddDistributionChatListCD(
+            cur_page=1, back_page=page, dist_id=dist_id
+        ).pack(),
     )
     for dist in dist_list:
         builder.button(
             text=dist.chat.name,
-            callback_data=DistributionChatDetailsCD(
+            callback_data=RemoveDistributionChatCD(
                 chat_id=dist.chat_id, back_page=page, dist_id=dist.distribution_id
             ).pack(),
         )
     builder.attach(
         get_paginator_ikb(
-            DistribtutionChatListCD,
+            DistributionChatListCD,
             cur_page=page,
-            dist_id=dist.distribution_id,
+            dist_id=dist_id,
+            is_last_page=is_last_page,
+        )
+    )
+    builder.attach(back_ibtn(DistributionDetailsCD(back_page=1, dist_id=dist_id)))
+    builder.adjust(1, *([1] * len(dist_list)), 3, 1)
+
+    return builder.as_markup()
+
+
+def add_distribution_chat_list_ikb(
+    chat_list: list[ChatORM],
+    back_page: int,
+    page: int,
+    dist_id: int,
+    is_last_page: bool,
+):
+
+    builder = InlineKeyboardBuilder()
+    for chat in chat_list:
+        builder.button(
+            text=chat.name,
+            callback_data=AddDistributionChatCD(
+                back_page=page, chat_id=chat.id, dist_id=dist_id
+            ).pack(),
+        )
+    builder.attach(
+        get_paginator_ikb(
+            AddDistributionChatListCD,
+            cur_page=page,
+            back_page=back_page,
+            dist_id=dist_id,
             is_last_page=is_last_page,
         )
     )
     builder.attach(
-        back_ibtn(DistributionDetailsCD(back_page=1, dist_id=dist.distribution_id))
+        back_ibtn(DistributionChatListCD(cur_page=back_page, dist_id=dist_id))
     )
-    builder.adjust(1, *([1] * len(dist_list)), 3, 1)
+    builder.adjust(*([1] * len(chat_list)), 3, 1)
 
     return builder.as_markup()

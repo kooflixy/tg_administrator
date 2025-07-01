@@ -38,8 +38,10 @@ async def get_add_moderator_chat_list(
             chat_list = await ChatORMHandler.get_unassigned_chat_page(
                 session, callback_data.cur_page, callback_data.moderator_id
             )
-            is_last_page = await ChatORMHandler.is_last_page(
-                session, page=callback_data.cur_page
+            is_last_page = await ChatORMHandler.is_last_unassigned_chat_page(
+                session,
+                page=callback_data.cur_page,
+                moderator_id=callback_data.moderator_id,
             )
     except:
         await error_cb_ans(callback)

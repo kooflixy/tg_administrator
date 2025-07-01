@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import Optional
 
-from sqlalchemy import delete, desc, select
+from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from db.database import async_session_factory
@@ -65,7 +65,9 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
         subquery = select(ModeratorChatORM.chat_id).where(
             ModeratorChatORM.moderator_id == moderator_id
         )
-        query = select(cls.model_cls).where(cls.model_cls.id.not_in(subquery))
+        query = select(func.count(cls.model_cls.id)).where(
+            cls.model_cls.id.not_in(subquery)
+        )
 
         return await cls._is_last_page(session=session, page=page, query=query)
 
