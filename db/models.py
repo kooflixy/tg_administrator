@@ -19,7 +19,7 @@ class Adm:
 
 
 class DistributionChatORM(Base):
-    __tablename__ = "distibution_chat_table"
+    __tablename__ = "distribution_chat_table"
 
     chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))
     chat: Mapped["ChatORM"] = relationship(back_populates="distributions")
