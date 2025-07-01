@@ -30,6 +30,7 @@ from app.utils.contrib import time_text_to_seconds
 from app.utils.for_logging import name_in_log
 from config import settings
 from db.database import async_session_factory
+from db.models import DistributionORM
 from db.queries.distribution_chat_orm import DistributionChatORMHandler
 from db.queries.distribution_orm import DistributionORMHandler
 
@@ -115,6 +116,7 @@ async def get_distribution_details(
 
     await callback.message.edit_text(
         text=f"""Название: {dist.name}
+ID: {dist.id}
 Интервал: {dist.interval}
 """,
         reply_markup=distribution_details_ikb(
@@ -265,3 +267,38 @@ async def remove_distribution_chat(
             cur_page=callback_data.back_page, dist_id=callback_data.dist_id
         ),
     )
+
+
+@router.message(Command("set_dist_int"))
+async def set_distribution_interval(message: Message, command: CommandObject):
+
+    # Проверка, является ли пользователь главным админом
+    if message.chat.id != settings.ADMIN_ID:
+        return
+
+    if not command.args:
+        return
+
+    dist_id = command.args.split()[0]
+    if not dist_id.isdigit():
+        return
+    dist_id = int(dist_id)
+
+    interval = time_text_to_seconds(" ".join(command.args.split()[1:]))
+
+    if not interval:
+        return
+
+    interval = timedelta(seconds=interval)
+
+    async with async_session_factory() as session:
+        dist = await session.get(DistributionORM, dist_id)
+
+        if not dist:
+            return
+
+        dist.interval = interval
+        await message.answer(
+            f"Интервал рассылки <b>{dist.name}</b> изменен на {interval}"
+        )
+        await session.commit()

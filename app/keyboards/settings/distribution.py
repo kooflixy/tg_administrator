@@ -30,11 +30,6 @@ class ChangeDistributionActivityCD(
 class ChangeDistributionIntervalCD(CallbackData, DistIdArg, prefix="ch_i_dist"): ...
 
 
-class DistributionChatDetailsCD(
-    CallbackData, DistIdArg, ChatIDArg, BackPageArg, prefix="dist_ch_d"
-): ...
-
-
 class AddDistributionChatListCD(
     CallbackData, DistIdArg, BackPageArg, CurrentPageArg, prefix="add_dist_ch_l"
 ): ...
@@ -82,10 +77,6 @@ def distribution_details_ikb(dist: DistributionORM, back_page: int = 1):
         callback_data=DistributionChatListCD(cur_page=1, dist_id=dist.id).pack(),
     )
     builder.button(
-        text="⏳Изменить интервал",
-        callback_data=ChangeDistributionIntervalCD(dist_id=dist.id),
-    )
-    builder.button(
         text="👁Показать", callback_data=ShowDistributionCD(msg_id=dist.msg_id).pack()
     )
     builder.button(
@@ -97,7 +88,7 @@ def distribution_details_ikb(dist: DistributionORM, back_page: int = 1):
         callback_data=RemoveDistributionCD(dist_id=dist.id, back_page=back_page).pack(),
     )
     builder.attach(back_ibtn(DistributionListCD(cur_page=back_page)))
-    builder.adjust(1, 2, 2, 1)
+    builder.adjust(2, 2, 1)
 
     return builder.as_markup()
 
