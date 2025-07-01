@@ -49,7 +49,7 @@ async def get_distribution_list(
         )
 
     await callback.message.edit_text(
-        "📋Список рассылок:",
+        "📋Список рассылок:\n<code>/add_dist</code> <b>[интервал]</b> - добавление рассылки(пишите ответом на сообщение рассылки)",
         reply_markup=distribution_list_ikb(
             dist_list, callback_data.cur_page, is_last_page
         ),
@@ -82,7 +82,10 @@ async def get_distribution_details(
     await callback.message.edit_text(
         text=f"""Название: {dist.name}
 ID: {dist.id}
+Статус: {'включена' if dist.is_active else 'выключена'}
 Интервал: {dist.interval}
+
+<code>/set_dist_int</code> <b>[id рассылки]</b> <b>[интервал]</b> - изменение интервала рассылки(id берется из деталей рассылки)
 """,
         reply_markup=distribution_details_ikb(
             dist=dist, back_page=callback_data.back_page
