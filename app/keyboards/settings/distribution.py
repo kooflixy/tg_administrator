@@ -59,6 +59,7 @@ class RemoveDistributionChatCD(
 def distribution_list_ikb(
     dist_list: list[DistributionORM], page: int, is_last_page: bool
 ):
+    """Создание инлайн-клавиатуры со списком рассылок"""
     builder = InlineKeyboardBuilder()
     for dist in dist_list:
         builder.button(
@@ -75,7 +76,7 @@ def distribution_list_ikb(
 
 
 def distribution_details_ikb(dist: DistributionORM, back_page: int = 1):
-
+    '''Создание инлайн-клавиатуры с деталями определенной рассылки'''
     dist_status_text = "❌ Выключить" if dist.is_active else "✅ Включить"
 
     builder = InlineKeyboardBuilder()
@@ -103,6 +104,7 @@ def distribution_details_ikb(dist: DistributionORM, back_page: int = 1):
 def distribution_chat_list_ikb(
     dist_list: list[DistributionChatORM], page: int, dist_id: int, is_last_page: bool
 ):
+    '''Создание инлайн-клавиатуры со списком чатов определенной рассылки'''
     builder = InlineKeyboardBuilder()
     builder.button(
         text="➕Добавить чат",
@@ -138,7 +140,7 @@ def add_distribution_chat_list_ikb(
     dist_id: int,
     is_last_page: bool,
 ):
-
+    '''Создание инлайн-клавиатуры со списком чатов, возможных для добавления в определенную рассылку'''
     builder = InlineKeyboardBuilder()
     for chat in chat_list:
         builder.button(
