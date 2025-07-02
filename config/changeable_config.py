@@ -43,6 +43,8 @@ class ChangeableSettings(BaseModel):
     open_text: str = "Чат снова открыт"
     already_open_text: str = "Чат уже открыт"
 
+    distribution_check_timeout: int = 60
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 

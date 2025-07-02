@@ -25,6 +25,7 @@ class DistributionChatORM(Base):
     chat: Mapped["ChatORM"] = relationship(back_populates="distributions")
     distribution_id: Mapped[int] = mapped_column(ForeignKey("distribution_table.id"))
     distribution: Mapped["DistributionORM"] = relationship(back_populates="chats")
+    last_msg_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
 
 class ChatORM(Adm, Base):
@@ -41,7 +42,6 @@ class DistributionORM(Base):
 
     name: Mapped[str]
     msg_id: Mapped[int] = mapped_column(BigInteger)
-    last_msg_id: Mapped[Optional[int]] = mapped_column(BigInteger)
     interval: Mapped[timedelta]
     next_dist_date: Mapped[datetime]
 

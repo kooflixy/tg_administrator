@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from logging import getLogger
 
 from aiogram import Router
@@ -126,15 +126,17 @@ async def change_distribution_activity(
         await session.commit()
         dist = await DistributionORMHandler.get(session, callback_data.dist_id)
 
-    await callback.message.edit_reply_markup(
-        reply_markup=distribution_details_ikb(
-            back_page=callback_data.back_page, dist=dist
-        )
-    )
     log.info(
         "%s поменял активность рассылки dist_id=%s",
         name_in_log.user(callback),
         callback_data.dist_id,
+    )
+
+    await get_distribution_details(
+        callback,
+        DistributionDetailsCD(
+            back_page=callback_data.back_page, dist_id=callback_data.dist_id
+        ),
     )
 
 
@@ -200,6 +202,9 @@ async def set_distribution_interval(message: Message, command: CommandObject):
             return
 
         dist.interval = interval
+        dist.next_dist_date = (
+            datetime.now(tz=timezone.utc).replace(tzinfo=None) + interval
+        )
         await message.answer(
             f"Интервал рассылки <b>{dist.name}</b> изменен на {interval}"
         )

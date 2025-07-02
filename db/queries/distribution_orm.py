@@ -1,10 +1,13 @@
 import textwrap
 from datetime import datetime, timedelta, timezone
 from logging import getLogger
+from typing import Optional
 
-from sqlalchemy import delete, text
+from sqlalchemy import delete, desc, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
+from config import changeable_settings
 from db.models import DistributionChatORM, DistributionORM
 from db.queries import BaseORMHandler
 
@@ -49,3 +52,32 @@ class DistributionORMHandler(BaseORMHandler[DistributionORM]):
         )
 
         await session.execute(query)
+
+    @classmethod
+    async def update_dist_date(cls, session: AsyncSession):
+        now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+        query = select(cls.model_cls).filter(cls.model_cls.next_dist_date <= now)
+        dist_list = await cls._get_all(session, query)
+        for dist in dist_list:
+            dist.next_dist_date = now + dist.interval
+
+    @classmethod
+    async def get_last_distributions_list(
+        cls, session: AsyncSession
+    ) -> list[DistributionORM]:
+        now = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+        query = (
+            select(cls.model_cls)
+            .options(selectinload(cls.model_cls.chats))
+            .filter(
+                cls.model_cls.next_dist_date <= now,
+                cls.model_cls.next_dist_date
+                >= now
+                - timedelta(seconds=changeable_settings.distribution_check_timeout),
+            )
+            .order_by(desc(cls.model_cls.next_dist_date))
+        )
+
+        last_dist_list = (await session.execute(query)).scalars().all()
+
+        return last_dist_list
