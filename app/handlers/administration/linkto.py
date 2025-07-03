@@ -29,26 +29,39 @@ async def linkto(message: Message, command: CommandObject):
         return
 
     log.info(
-        "Попытка переслать сообщение moderator=% msg_url=%s reason=%r",
+        "Попытка переслать сообщение moderator=%s",
         name_in_log.user(message),
     )
+
+    if not changeable_settings.linkto_chat_id:
+        await RestChecker.reply_n_delete("Чат для линковки не привязан", message)
+        return
 
     msg_url, reason = get_msg_url_reason(message, command)
 
     if not await RestChecker.is_linkto_data_valid(msg_url, reason, message):
         return
 
-    await bot.send_message(
-        changeable_settings.linkto_chat_id,
-        text=f"""
-👤Модер: {TextMarkup.tag_user(message.from_user.full_name, message.from_user.id)}
-{f"👁Причина: {reason}" if reason else ''}
+    try:
+        await bot.send_message(
+            changeable_settings.linkto_chat_id,
+            text=f"""
+    👤Модер: {TextMarkup.tag_user(message.from_user.full_name, message.from_user.id)}{f"\n👁Причина: {reason}" if reason else ''}
 💬Сообщение: {msg_url}""",
-    )
+        )
 
-    log.info(
-        "Переслано сообщение moderator=%s msg_url=%s reason=%r",
-        name_in_log.user(message),
-        msg_url,
-        reason,
-    )
+        log.info(
+            "Переслано сообщение moderator=%s msg_url=%s reason=%r",
+            name_in_log.user(message),
+            msg_url,
+            reason,
+        )
+    except:
+        log.exception(
+            "При попытке переслать сообщение произошла ошибкаmoderator=%s msg_url=%s reason=%r",
+            name_in_log.user(message),
+            msg_url,
+            reason,
+        )
+
+    await RestChecker.reply_n_delete("Успешно переслано", message)

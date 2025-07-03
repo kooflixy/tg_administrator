@@ -90,6 +90,10 @@ async def get_commands_list(message: Message):
 <code>/add_dist</code> <b>[интервал]</b> - добавление рассылки(пишите ответом на сообщение рассылки)
 
 <code>/set_dist_int</code> <b>[id рассылки]</b> <b>[интервал]</b> - изменение интервала рассылки(id берется из деталей рассылки)
+
+🔀<b>Команды для управления линковкой:</b>
+
+<code>/set_linkto_chat</code> <b>[айди или ссылка на чат]</b> - изменение чата для линковки
 """
 
     await message.answer(text)

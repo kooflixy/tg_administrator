@@ -1,10 +1,12 @@
 from logging import getLogger
 
-from aiogram import Router
+from aiogram import F, Router
 from aiogram.filters import Command, CommandObject
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, Message
 from telethon import errors, types
 
+from app.keyboards.contrib import back_ibtn
+from app.keyboards.settings_menu import SettingsListCD, SettingsType, SettingsTypeCD
 from app.utils.for_logging import name_in_log
 from app.utils.telthon_manager import TelethonManager
 from config import changeable_settings, settings
@@ -12,6 +14,27 @@ from config import changeable_settings, settings
 log = getLogger(__name__)
 
 router = Router()
+
+
+@router.callback_query(SettingsTypeCD.filter(F.type == SettingsType.LINKTO))
+async def get_linkto_settings(callback: CallbackQuery, callback_data: SettingsTypeCD):
+    id_ = str(changeable_settings.linkto_chat_id)
+    if id_[:4] == "-100":
+        id_ = id_[4:]
+    chat = await TelethonManager.get_entity(id_)
+
+    if not chat:
+        text = f"Такого чата не существует\n<b>ID:</b> {id_}"
+    else:
+        text = f"""
+<b>Название:</b> {chat.title}
+<b>ID:</b> {id_}"""
+
+    text += "\n\n<code>/set_linkto_chat</code> <b>[айди или ссылка на чат]</b> - изменение чата для линковки"
+
+    await callback.message.edit_text(
+        text=text, reply_markup=back_ibtn(SettingsListCD()).as_markup()
+    )
 
 
 @router.message(Command("set_linkto_chat"))
@@ -26,7 +49,7 @@ async def set_linkto_chat(message: Message, command: CommandObject):
 
     id_ = command.args
     if id_[:4] == "-100":
-        id_ = id_[:4]
+        id_ = id_[4:]
 
     try:
         chat = await TelethonManager.get_entity(id_)

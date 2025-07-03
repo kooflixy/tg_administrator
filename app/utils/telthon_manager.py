@@ -13,7 +13,7 @@ client = TelegramClient(
     "ses", api_id=settings.TELETHON_API_ID, api_hash=settings.TELETHON_API_HASH
 )
 
-CACHE_TERM = timedelta(seconds=40)
+CACHE_TERM = timedelta(hours=8)
 
 
 class Cache:

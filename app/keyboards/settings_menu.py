@@ -20,14 +20,19 @@ class DistributionListCD(CallbackData, CurrentPageArg, prefix="dist_list"): ...
 class SettingsType:
     CAPTCHA = "captcha"
     WARN = "warn"
+    LINKTO = "linkto"
 
 
 class SettingsTypeCD(CallbackData, prefix="setts_type"):
     type: str
 
 
+BTN_COUNT = 6
+
+
 def settings_menu_ikb():
     builder = InlineKeyboardBuilder()
+
     builder.button(text="📋Чаты", callback_data=ChatListCD().pack())
     builder.button(text="👤Модераторы", callback_data=ModeratorListCD().pack())
     builder.button(
@@ -37,6 +42,10 @@ def settings_menu_ikb():
     builder.button(
         text="🚫Варны", callback_data=SettingsTypeCD(type=SettingsType.WARN).pack()
     )
-    builder.adjust(*([1] * 5))
+    builder.button(
+        text="🔀Линковка", callback_data=SettingsTypeCD(type=SettingsType.LINKTO).pack()
+    )
+
+    builder.adjust(*([1] * (BTN_COUNT % 2) + [2] * (BTN_COUNT // 2)))
 
     return builder.as_markup()
