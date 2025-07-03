@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import Literal
+from typing import Literal, Optional, Union
 
 from pydantic import BaseModel, field_serializer, field_validator
 
@@ -43,7 +43,9 @@ class ChangeableSettings(BaseModel):
     open_text: str = "Чат снова открыт"
     already_open_text: str = "Чат уже открыт"
 
-    distribution_check_timeout: int = 60*12
+    distribution_check_timeout: int = 60 * 12
+
+    linkto_chat_id: Optional[Union[str, int]] = None
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"

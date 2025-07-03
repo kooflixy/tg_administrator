@@ -27,8 +27,8 @@ async def main():
         pagination.router,
 
         settings.set_text.router,
+        settings.linkto.router,
         settings.captcha.router,
-        # settings.distribution.router,
         settings.warn.router,
 
         settings.distribution_settings.distribution.router,
