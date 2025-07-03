@@ -68,13 +68,14 @@ class ModeratorChatORM(Base):
     )
     moderator: Mapped["ModeratorORM"] = relationship(back_populates="chats")
 
-    # Права
+    # Права. При добавлении или удалении одного измените инлайн-клавиатуру изменения прав модератора
     ba_perm: Mapped[permission_tp]
     ban_perm: Mapped[permission_tp]
     kick_perm: Mapped[permission_tp]
     mute_perm: Mapped[permission_tp]
     warn_perm: Mapped[permission_tp]
     close_perm: Mapped[permission_tp]
+    linkto_perm: Mapped[permission_tp]
 
     updated_at: Mapped[updated_attp]
 
