@@ -1,8 +1,6 @@
 import asyncio
 from logging import getLogger
 
-from aiogram.exceptions import TelegramBadRequest
-
 from app.bot_obj import bot
 from config import changeable_settings, settings
 from db.database import async_session_factory
