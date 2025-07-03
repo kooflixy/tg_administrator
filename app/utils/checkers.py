@@ -114,3 +114,18 @@ class RestChecker:
             return False
 
         return True
+
+    @classmethod
+    @validate_call
+    async def is_linkto_data_valid(
+        cls, msg_url: Optional[str], reason: Optional[str], message: Message
+    ) -> bool:
+        if not msg_url:
+            await cls.reply_n_delete("Не введена ссылка на сообщение", message)
+            return False
+
+        if msg_url[:13] != "https://t.me/":
+            await cls.reply_n_delete("Это не ссылка на сообщение", message)
+            return False
+
+        return True

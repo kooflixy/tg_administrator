@@ -213,6 +213,27 @@ async def get_user_id_name_reason(
     return user, reason
 
 
+def get_msg_url_reason(
+    message: Message, command: CommandObject
+) -> tuple[Optional[str], Optional[str]]:
+    if message.reply_to_message:
+        msg_url = message.reply_to_message.get_url()
+
+        reason = command.args if command.args else ""
+    else:
+        if len(message.entities) < 2:
+            return None, None
+
+        url_ent = message.entities[1]
+        if url_ent.type == "url":
+            msg_url = message.text[url_ent.offset : url_ent.offset + url_ent.length]
+        else:
+            return None, None
+        reason = message.text[url_ent.offset + url_ent.length :].strip()
+
+    return msg_url, reason
+
+
 def current_to_new_permissions(
     current_permissions: ChatPermissions, **kwargs
 ) -> ChatPermissions:

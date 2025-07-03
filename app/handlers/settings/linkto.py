@@ -68,8 +68,10 @@ async def set_linkto_chat(message: Message, command: CommandObject):
         )
         return
 
-    changeable_settings.linkto_chat_id = chat.id
+    changeable_settings.linkto_chat_id = int("-100" + str(chat.id))
 
     await message.answer(f"Чат для линковки успешно изменен на <b>{chat.title}</b>")
 
-    log.info("id linkto-чата изменено linkto_chat_id=%s", chat.id)
+    log.info(
+        "id linkto-чата изменено linkto_chat_id=%s", changeable_settings.linkto_chat_id
+    )

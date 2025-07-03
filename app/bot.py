@@ -50,6 +50,7 @@ async def main():
         administration.warn.router,
         administration.list.router,
         administration.close.router,
+        administration.linkto.router,
 
         error.router,
     )
