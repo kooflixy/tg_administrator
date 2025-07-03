@@ -32,13 +32,18 @@ async def add_dist(message: Message, command: CommandObject):
         return
 
     interval = timedelta(seconds=interval)
+    text = message.reply_to_message.text
+    if not text:
+        text = message.reply_to_message.caption
+        if not text:
+            text = "просто картинка"
 
     async with async_session_factory() as session:
         await DistributionORMHandler.insert(
             session,
             msg_id=message.reply_to_message.message_id,
             interval=interval,
-            text=message.reply_to_message.text,
+            text=text,
         )
         await session.commit()
 

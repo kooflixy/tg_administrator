@@ -21,6 +21,7 @@ from app.utils.for_logging import name_in_log
 from config import settings
 from db.database import async_session_factory
 from db.models import DistributionORM
+from db.queries.distribution_chat_orm import DistributionChatORMHandler
 from db.queries.distribution_orm import DistributionORMHandler
 
 log = getLogger(__name__)
@@ -152,6 +153,19 @@ async def remove_distribtution(
     )
 
     async with async_session_factory() as session:
+        chat_list = await DistributionChatORMHandler.get_all_by_dist_id(
+            session, dist_id=callback_data.dist_id
+        )
+        for chat in chat_list:
+            try:
+                await bot.delete_message(chat.chat_id, chat.last_msg_id)
+            except:
+                log.exception(
+                    "При попытке удаления сообщения рассылки произошла ошибка dist_id=%s chat_id=%s msg_id=%s",
+                    chat.distribution_id,
+                    chat.chat_id,
+                    chat.last_msg_id,
+                )
         await DistributionORMHandler.remove(session, callback_data.dist_id)
         await session.commit()
 

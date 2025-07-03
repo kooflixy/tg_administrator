@@ -18,6 +18,14 @@ class DistributionChatORMHandler(BaseORMHandler[DistributionChatORM]):
     use_unique_scalars = True
 
     @classmethod
+    async def get_all_by_dist_id(
+        cls, session: AsyncSession, dist_id: int
+    ) -> list[DistributionChatORM]:
+        query = select(DistributionChatORM).filter_by(distribution_id=dist_id)
+
+        return await cls._get_all(session, query)
+
+    @classmethod
     async def insert(cls, session: AsyncSession, chat_id: int, dist_id: int):
         """Делает запись и возвращает записанный объект"""
         result = await cls._insert(session, chat_id=chat_id, distribution_id=dist_id)
