@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import Any, Optional
 
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
     ChatMemberAdministrator,
     ChatMemberBanned,
@@ -31,7 +32,18 @@ class RestChecker:
         """Отвечает пользователю и через время удаляет сообщение"""
         msg = await message.reply(text)
         await asyncio.sleep(interval)
-        await bot.delete_messages(message.chat.id, [msg.message_id, message.message_id])
+        try:
+            await bot.delete_messages(
+                message.chat.id, [msg.message_id, message.message_id]
+            )
+        except:
+            msg_not_perm = await message.answer(
+                "У бота нет права на удаление чужих сообщений"
+            )
+            await asyncio.sleep(interval)
+            await bot.delete_messages(
+                message.chat.id, [msg.message_id, msg_not_perm.message_id]
+            )
 
     @classmethod
     @validate_call

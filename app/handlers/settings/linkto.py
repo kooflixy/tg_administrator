@@ -18,17 +18,27 @@ router = Router()
 
 @router.callback_query(SettingsTypeCD.filter(F.type == SettingsType.LINKTO))
 async def get_linkto_settings(callback: CallbackQuery, callback_data: SettingsTypeCD):
-    id_ = str(changeable_settings.linkto_chat_id)
-    if id_[:4] == "-100":
-        id_ = id_[4:]
-    chat = await TelethonManager.get_entity(id_)
+    id_ = (
+        str(changeable_settings.linkto_chat_id)
+        if changeable_settings.linkto_chat_id
+        else changeable_settings.linkto_chat_id
+    )
+    if id_:
+        if id_[:4] == "-100":
+            id_ = id_[4:]
+        elif id_[:1] == "-":
+            id_ = id_[1:]
 
-    if not chat:
-        text = f"Такого чата не существует\n<b>ID:</b> {id_}"
-    else:
-        text = f"""
+        chat = await TelethonManager.get_entity(id_)
+
+        if not chat:
+            text = f"Такого чата не существует\n<b>ID:</b> {id_}"
+        else:
+            text = f"""
 <b>Название:</b> {chat.title}
 <b>ID:</b> {id_}"""
+    else:
+        text = "Чат для линковки еще не привязан"
 
     text += "\n\n<code>/set_linkto_chat</code> <b>[айди или ссылка на чат]</b> - изменение чата для линковки"
 
@@ -71,28 +81,22 @@ async def set_linkto_chat(message: Message, command: CommandObject):
         )
         return
 
-    # Проверка, на тип: является ли чатом или группой
-    if not isinstance(chat, types.Channel):
-        await message.answer("Это не чат")
-        log.info(
-            "%s ввёл ссылку на linkto чат, но это оказался не чат chat_url=%r",
-            name_in_log.user(message),
-            message.text,
-        )
-        return
-
     # Проверка, является ли чатом
-    if not chat.megagroup:
-        await message.answer("Это не чат, а канал")
-        log.info(
-            "%s ввёл ссылку на linkto чат, но это оказался не чат, а канал chat_url=%r",
-            name_in_log.user(message),
-            message.text,
-        )
+    if isinstance(chat, types.Channel):
+        if not chat.megagroup:
+            await message.answer("Это не чат, а канал")
+            log.info(
+                "%s ввёл ссылку на linkto чат, но это оказался не чат, а канал chat_url=%r",
+                name_in_log.user(message),
+                message.text,
+            )
+            return
+        changeable_settings.linkto_chat_id = int("-100" + str(chat.id))
+    elif isinstance(chat, types.Chat):
+        changeable_settings.linkto_chat_id = int("-" + str(chat.id))
+    else:
+        await message.answer("Это не чат")
         return
-
-    changeable_settings.linkto_chat_id = int("-100" + str(chat.id))
-
     await message.answer(f"Чат для линковки успешно изменен на <b>{chat.title}</b>")
 
     log.info(

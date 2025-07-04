@@ -64,27 +64,22 @@ async def input_chat_url(message: Message, state: FSMContext):
         )
         return
 
-    # Проверка, на тип: является ли чатом или группой
-    if not isinstance(chat, types.Channel):
-        await message.answer("Это не чат")
-        log.info(
-            "%s ввёл ссылку на чат для его добавления в отслеживаемые, но это оказался не чат chat_url=%r",
-            name_in_log.user(message),
-            message.text,
-        )
-        return
-
     # Проверка, является ли чатом
-    if not chat.megagroup:
-        await message.answer("Это не чат, а канал")
-        log.info(
-            "%s ввёл ссылку на чат для его добавления в отслеживаемые, но это оказался не чат, а канал chat_url=%r",
-            name_in_log.user(message),
-            message.text,
-        )
+    if isinstance(chat, types.Channel):
+        if not chat.megagroup:
+            await message.answer("Это не чат, а канал")
+            log.info(
+                "%s ввёл ссылку на linkto чат, но это оказался не чат, а канал chat_url=%r",
+                name_in_log.user(message),
+                message.text,
+            )
+            return
+        chat_id = int("-100" + str(chat.id))
+    elif isinstance(chat, types.Chat):
+        chat_id = int("-" + str(chat.id))
+    else:
+        await message.answer("Это не чат")
         return
-
-    chat_id = int("-100" + str(chat.id))
 
     try:
         async with async_session_factory() as session:

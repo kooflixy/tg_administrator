@@ -20,6 +20,10 @@ router = Router()
 
 @router.message(Command("linkto"))
 async def linkto(message: Message, command: CommandObject):
+
+    if message.chat.type != "supergroup":
+        return
+
     if not await ChatORMHandler.is_chat_monitored(message.chat.id):
         return
 
