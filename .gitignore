@@ -198,3 +198,5 @@ test.py
 # telethon
 *.session
 *.session-journal
+
+db/data/

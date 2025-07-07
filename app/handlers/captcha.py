@@ -11,6 +11,7 @@ from app.utils.rest_handler.ban_rest import BanRestHandler
 from app.utils.text_markup import TextMarkup
 from config import changeable_settings
 from db.database import async_session_factory
+from db.queries.passed_captcha_user_orm import PassedCaptchaUserORMHandler
 
 SLEEP_TIME = 2  # в секундах
 DELETE_MSG_TIME = 1
@@ -49,6 +50,10 @@ async def captcha_check(event: ChatMemberUpdated):
     new_member = event.new_chat_member.user
     if new_member.is_bot:
         return
+
+    async with async_session_factory() as session:
+        if await PassedCaptchaUserORMHandler.get(session, new_member.id):
+            return
 
     not_passed_captcha_users.append(new_member.id)
 
@@ -122,6 +127,9 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     )
 
     not_passed_captcha_users.remove(callback_data.user_id)
+    async with async_session_factory() as session:
+        await PassedCaptchaUserORMHandler.insert(session, callback.from_user.id)
+        await session.commit()
     welcome_message = await callback.message.answer(
         f"{tag_user_text}, добро пожаловать!"
     )

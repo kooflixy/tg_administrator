@@ -107,3 +107,7 @@ class MuteRestORM(Base, UserRest):
 class WarnRestORM(Base, UserRest):
     __tablename__ = "warn_rest_table"
     reason: Mapped[Optional[str]]
+
+class PassedCaptchaUserORM(Base):
+    __tablename__ = 'passed_captcha_user_table'
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
