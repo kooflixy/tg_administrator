@@ -35,6 +35,7 @@ class ChatORM(Adm, Base):
     distributions: Mapped[list["DistributionChatORM"]] = relationship(
         back_populates="chat"
     )
+    perms: Mapped["ChatPermORM"] = relationship()
 
 
 class DistributionORM(Base):
@@ -76,6 +77,7 @@ class ModeratorChatORM(Base):
     warn_perm: Mapped[permission_tp]
     close_perm: Mapped[permission_tp]
     linkto_perm: Mapped[permission_tp]
+    perm_perm: Mapped[permission_tp]
 
     updated_at: Mapped[updated_attp]
 
@@ -111,3 +113,31 @@ class WarnRestORM(Base, UserRest):
 class PassedCaptchaUserORM(Base):
     __tablename__ = 'passed_captcha_user_table'
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+
+@dataclass
+class BasePerm:
+    can_send_messages: Mapped[bool]
+    can_send_audios: Mapped[bool]
+    can_send_documents: Mapped[bool]
+    can_send_photos: Mapped[bool]
+    can_send_videos: Mapped[bool]
+    can_send_video_notes: Mapped[bool]
+    can_send_voice_notes: Mapped[bool]
+    can_send_polls: Mapped[bool]
+    can_send_other_messages: Mapped[bool]
+    can_add_web_page_previews: Mapped[bool]
+    can_change_info: Mapped[bool]
+    can_invite_users: Mapped[bool]
+    can_pin_messages: Mapped[bool]
+    can_manage_topics: Mapped[bool]
+
+class UserPermORM(Base, BasePerm):
+    __tablename__ = 'user_perm_table'
+
+    chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))
+    user_id: Mapped[int] = mapped_column(BigInteger)
+
+class ChatPermORM(Base, BasePerm):
+    __tablename__ = 'chat_perm_table'
+    
+    chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))
