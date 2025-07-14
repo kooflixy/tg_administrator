@@ -2,15 +2,18 @@ from logging import getLogger
 
 from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, ChatPermissions, Message
 from telethon import types
 
+from app.bot_obj import bot
 from app.handlers import user_commands
 from app.keyboards.settings.chat import AddChatCD
 from app.utils.for_logging import name_in_log
+from app.utils.perm import permissions_to_dict
 from app.utils.states import AddChatForm
 from app.utils.telthon_manager import TelethonManager
 from db.database import async_session_factory
+from db.models import ChatPermORM
 from db.queries.chat_orm import ChatORMHandler
 
 log = getLogger(__name__)
@@ -95,6 +98,11 @@ async def input_chat_url(message: Message, state: FSMContext):
 
             # Добавление чата в отслеживаемые
             await ChatORMHandler.insert(session, chat_id, chat.title)
+            chat_perms = ChatPermORM(
+                chat_id=chat_id,
+                **permissions_to_dict((await bot.get_chat(chat_id)).permissions),
+            )
+            session.add(chat_perms)
             await session.commit()
     except:
         await message.answer("⚠Произошла ошибка")

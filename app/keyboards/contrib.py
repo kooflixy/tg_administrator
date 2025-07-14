@@ -15,9 +15,11 @@ class ModerIdArg:
 class UserIdArg:
     user_id: int
 
+
 @dataclass
 class PermNameArg:
     perm: str
+
 
 @dataclass
 class DistIdArg:
