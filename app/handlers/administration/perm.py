@@ -6,7 +6,7 @@ from aiogram.filters import Command, CommandObject
 from aiogram.types import CallbackQuery, ChatMemberRestricted, ChatPermissions, Message
 
 from app.bot_obj import bot
-from app.keyboards.perm import ChangePermCD, get_perm_list_ikb
+from app.keyboards.perm import ChangePermCD, ResetPermcD, get_perm_list_ikb
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name_reason
 from app.utils.perm import permissions_to_dict
@@ -89,6 +89,41 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
         await callback.message.edit_reply_markup(
             reply_markup=get_perm_list_ikb(
                 user_perms, callback_data.chat_id, callback_data.user_id
+            )
+        )
+    except TelegramBadRequest:
+        pass
+
+
+@router.callback_query(ResetPermcD.filter(F.user_id != None))
+async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermcD):
+    if not await PermRestHandler.is_perm_exists(
+        callback.from_user.id, callback_data.chat_id
+    ):
+        return
+
+    async with async_session_factory() as session:
+        user_perms = await PermRestHandler.get_by_user_chat_ids(
+            session, callback_data.user_id, callback_data.chat_id
+        )
+
+        if user_perms:
+            await session.delete(user_perms)
+            await session.commit()
+
+        chat_perms = (await bot.get_chat(callback_data.chat_id)).permissions
+        await bot.restrict_chat_member(
+            callback_data.chat_id, callback_data.user_id, permissions=chat_perms
+        )
+
+    await callback.answer("Права успешно сброшены")
+
+    chat_perms = permissions_to_dict(chat_perms)
+
+    try:
+        await callback.message.edit_reply_markup(
+            reply_markup=get_perm_list_ikb(
+                chat_perms, callback_data.chat_id, callback_data.user_id
             )
         )
     except TelegramBadRequest:

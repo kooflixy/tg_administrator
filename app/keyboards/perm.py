@@ -13,8 +13,11 @@ from db.models import ChatORM, ModeratorChatORM, ModeratorORM
 
 
 class ChangePermCD(
-    CallbackData, UserIdArg, ChatIDArg, PermNameArg, prefix="ch_u_perm"
+    CallbackData, UserIdArg, ChatIDArg, PermNameArg, prefix="ch_u_p"
 ): ...
+
+
+class ResetPermcD(CallbackData, UserIdArg, ChatIDArg, prefix="res_p"): ...
 
 
 def get_perm_list_ikb(perms: dict, chat_id: int, user_id: Optional[int] = None):
@@ -35,5 +38,9 @@ def get_perm_list_ikb(perms: dict, chat_id: int, user_id: Optional[int] = None):
                 perm=perm, chat_id=chat_id, user_id=user_id
             ).pack(),
         )
-    builder.adjust(*([2] * 7))
+    builder.button(
+        text="🔁Сбросить",
+        callback_data=ResetPermcD(chat_id=chat_id, user_id=user_id).pack(),
+    )
+    builder.adjust(*([2] * 7), 1)
     return builder.as_markup()
