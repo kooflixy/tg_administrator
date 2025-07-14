@@ -1,12 +1,12 @@
 from logging import getLogger
 
 from aiogram import F, Router
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
 from aiogram.filters import Command, CommandObject
 from aiogram.types import CallbackQuery, ChatMemberRestricted, ChatPermissions, Message
 
 from app.bot_obj import bot
-from app.keyboards.perm import ChangePermCD, ResetPermcD, get_perm_list_ikb
+from app.keyboards.perm import ChangePermCD, ResetPermCD, get_perm_list_ikb
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name_reason
 from app.utils.perm import permissions_to_dict
@@ -70,11 +70,13 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
         return
 
     async with async_session_factory() as session:
-        user_perms = permissions_to_dict(
-            await PermRestHandler.get_by_user_chat_ids(
-                session, callback_data.user_id, callback_data.chat_id
-            )
+        user_perms = await PermRestHandler.get_by_user_chat_ids(
+            session, callback_data.user_id, callback_data.chat_id
         )
+        if not user_perms:
+            chat = await bot.get_chat(callback_data.chat_id)
+            user_perms = chat.permissions
+        user_perms = permissions_to_dict(user_perms)
         user_perms[callback_data.perm] = not user_perms[callback_data.perm]
         await bot.restrict_chat_member(
             callback_data.chat_id, callback_data.user_id, ChatPermissions(**user_perms)
@@ -95,8 +97,8 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
         pass
 
 
-@router.callback_query(ResetPermcD.filter(F.user_id != None))
-async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermcD):
+@router.callback_query(ResetPermCD.filter(F.user_id != None))
+async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
     if not await PermRestHandler.is_perm_exists(
         callback.from_user.id, callback_data.chat_id
     ):
@@ -128,8 +130,5 @@ async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermcD):
         )
     except TelegramBadRequest:
         pass
-
-
-@router.callback_query(ChangePermCD.filter(F.user_id == None))
-async def change_chat_perm(callback: CallbackQuery, callback_data: ChangePermCD):
-    pass
+    except TelegramRetryAfter:
+        await callback.answer("Слишком много изменений, попробуйте позже")

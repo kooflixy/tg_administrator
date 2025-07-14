@@ -3,9 +3,10 @@ from typing import Optional
 
 from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from db.database import async_session_factory
-from db.models import ChatORM, DistributionChatORM, ModeratorChatORM
+from db.models import ChatORM, ChatPermORM, DistributionChatORM, ModeratorChatORM
 from db.queries import BaseORMHandler
 
 log = getLogger(__name__)
@@ -77,3 +78,20 @@ class ChatORMHandler(BaseORMHandler[ChatORM]):
     async def is_chat_monitored(cls, chat_id: int) -> bool:
         async with async_session_factory() as session:
             return chat_id in await cls.get_all_id(session)
+
+    @classmethod
+    def change_perms(cls, session: AsyncSession, chat: ChatORM, new_perms: dict):
+        if chat.perms:
+            for key, value in new_perms.items():
+                setattr(chat.perms, key, value)
+        else:
+            chat.perms = ChatPermORM(chat_id=chat.id, **new_perms)
+            session.add(chat.perms)
+
+    @classmethod
+    async def get(cls, session: AsyncSession, pk_value: int) -> Optional[ChatORM]:
+        query = (
+            select(ChatORM).options(selectinload(ChatORM.perms)).filter_by(id=pk_value)
+        )
+        res = (await session.execute(query)).scalar()
+        return res

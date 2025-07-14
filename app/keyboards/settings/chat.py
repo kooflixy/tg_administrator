@@ -3,8 +3,10 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from app.keyboards.contrib import *
+from app.keyboards.perm import get_emoji, get_perm_list_ikb
 from app.keyboards.settings_menu import ChatListCD, SettingsListCD
 from app.utils.pagination import get_paginator_ikb
+from app.utils.perm import permissions_translations, redistribute_dict
 from db.models import ChatORM
 
 
@@ -18,6 +20,14 @@ class AddChatCD(CallbackData, prefix="add_chat"): ...
 
 
 class RemoveChatCD(CallbackData, ChatCDArgs, prefix="remove_chat"): ...
+
+
+class ChatPermCD(CallbackData, ChatCDArgs, BackPageArg, prefix="chchp"): ...
+
+
+class ChangeChatPermCD(
+    CallbackData, ChatIDArg, PermNameArg, BackPageArg, prefix="ch_u_p"
+): ...
 
 
 def chat_list_ikb(chat_list: list[ChatORM], page: int, is_last_page: bool):
@@ -41,6 +51,24 @@ def chat_list_ikb(chat_list: list[ChatORM], page: int, is_last_page: bool):
     return builder.as_markup()
 
 
+def get_chat_perm_list_ikb(perms: dict, chat_id: int, back_page: int = 1):
+    builder = InlineKeyboardBuilder()
+
+    perms = redistribute_dict(perms)
+    for perm in perms.keys():
+        emoji = get_emoji(perms[perm])
+        ru_perm = permissions_translations[perm]
+        builder.button(
+            text=emoji + ru_perm,
+            callback_data=ChangeChatPermCD(
+                perm=perm, chat_id=chat_id, back_page=back_page
+            ).pack(),
+        )
+    builder.attach(back_ibtn(ChatDetailsCD(back_page=back_page, chat_id=chat_id)))
+    builder.adjust(*([2] * 7), 1)
+    return builder.as_markup()
+
+
 def chat_details_ikb(chat_id: int, back_page: int):
     """Создание инлайн-клавиатуры с деталями отслеживаемого чата
     Кнопки: удалить чат; назад(в список чатов)
@@ -48,9 +76,18 @@ def chat_details_ikb(chat_id: int, back_page: int):
 
     builder = InlineKeyboardBuilder()
     builder.button(
+        text="🪪Права участников",
+        callback_data=ChatPermCD(back_page=back_page, chat_id=chat_id),
+    )
+    builder.button(
         text="❌Удалить",
         callback_data=RemoveChatCD(chat_id=chat_id, back_page=back_page).pack(),
     )
     builder.attach(back_ibtn(ChatListCD(cur_page=back_page)))
+    builder.adjust(
+        1,
+        1,
+        1,
+    )
 
     return builder.as_markup()

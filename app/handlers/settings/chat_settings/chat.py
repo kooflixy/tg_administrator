@@ -1,17 +1,24 @@
 from logging import getLogger
 
-from aiogram import Router
-from aiogram.types import CallbackQuery
+from aiogram import F, Router
+from aiogram.exceptions import TelegramBadRequest, TelegramRetryAfter
+from aiogram.types import CallbackQuery, ChatPermissions
 
+from app.bot_obj import bot
+from app.keyboards.perm import ChangePermCD
 from app.keyboards.settings.chat import (
+    ChangeChatPermCD,
     ChatDetailsCD,
+    ChatPermCD,
     RemoveChatCD,
     chat_details_ikb,
     chat_list_ikb,
+    get_chat_perm_list_ikb,
 )
 from app.keyboards.settings_menu import ChatListCD
 from app.utils.answer_templates import error_cb_ans
 from app.utils.for_logging import name_in_log
+from app.utils.perm import permissions_to_dict, redistribute_dict
 from db.database import async_session_factory
 from db.queries.chat_orm import ChatORMHandler
 
@@ -127,3 +134,64 @@ async def remove_chat(callback: CallbackQuery, callback_data: RemoveChatCD):
         name_in_log.user(callback),
         callback_data.chat_id,
     )
+
+
+@router.callback_query(ChatPermCD.filter())
+async def get_chat_perm(callback: CallbackQuery, callback_data: ChatPermCD):
+    async with async_session_factory() as session:
+        chat = await ChatORMHandler.get(session, callback_data.chat_id)
+        if chat.perms:
+            chat_perms = chat.perms
+        else:
+            chat_perms = (await bot.get_chat(callback_data.chat_id)).permissions
+        chat_perms = permissions_to_dict(chat_perms)
+
+    try:
+        await callback.message.edit_text(
+            f"Права участников в <b>{chat.name}</b>:",
+            reply_markup=get_chat_perm_list_ikb(
+                chat_perms, callback_data.chat_id, back_page=callback_data.back_page
+            ),
+        )
+    except TelegramBadRequest:
+        pass
+    except TelegramRetryAfter:
+        await callback.answer("Слишком много изменений, попробуйте позже")
+
+
+@router.callback_query(ChangeChatPermCD.filter())
+async def change_chat_perm(callback: CallbackQuery, callback_data: ChangeChatPermCD):
+
+    async with async_session_factory() as session:
+        chat = await ChatORMHandler.get(session, callback_data.chat_id)
+        if chat.perms:
+            chat_perms = chat.perms
+        else:
+            tchat = await bot.get_chat(callback_data.chat_id)
+            chat_perms = tchat.permissions
+        chat_perms = permissions_to_dict(chat_perms)
+
+        chat_perms[callback_data.perm] = not chat_perms[callback_data.perm]
+
+        if chat.perms:
+            tchat = await bot.get_chat(callback_data.chat_id)
+
+        await tchat.set_permissions(ChatPermissions(**chat_perms))
+
+        chat_perms = permissions_to_dict(
+            (await bot.get_chat(callback_data.chat_id)).permissions
+        )
+
+        ChatORMHandler.change_perms(session, chat, chat_perms)
+
+        await session.commit()
+    try:
+        await callback.message.edit_reply_markup(
+            reply_markup=get_chat_perm_list_ikb(
+                chat_perms, callback_data.chat_id, callback_data.back_page
+            )
+        )
+    except TelegramBadRequest:
+        pass
+    except TelegramRetryAfter:
+        await callback.answer("Слишком много изменений, попробуйте позже")
