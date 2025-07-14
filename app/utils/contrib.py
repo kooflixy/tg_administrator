@@ -232,27 +232,3 @@ def get_msg_url_reason(
         reason = message.text[url_ent.offset + url_ent.length :].strip()
 
     return msg_url, reason
-
-
-def current_to_new_permissions(
-    current_permissions: ChatPermissions, **kwargs
-) -> ChatPermissions:
-    def get(field: str) -> bool:
-        return kwargs.get(field, getattr(current_permissions, field, False) or False)
-
-    return ChatPermissions(
-        can_send_messages=get("can_send_messages"),
-        can_send_audios=get("can_send_audios"),
-        can_send_documents=get("can_send_documents"),
-        can_send_photos=get("can_send_photos"),
-        can_send_videos=get("can_send_videos"),
-        can_send_video_notes=get("can_send_video_notes"),
-        can_send_voice_notes=get("can_send_voice_notes"),
-        can_send_polls=get("can_send_polls"),
-        can_send_other_messages=get("can_send_other_messages"),
-        can_add_web_page_previews=get("can_add_web_page_previews"),
-        can_change_info=get("can_change_info"),
-        can_invite_users=get("can_invite_users"),
-        can_pin_messages=get("can_pin_messages"),
-        can_manage_topics=get("can_manage_topics"),
-    )

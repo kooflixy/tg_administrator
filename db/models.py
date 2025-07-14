@@ -110,9 +110,11 @@ class WarnRestORM(Base, UserRest):
     __tablename__ = "warn_rest_table"
     reason: Mapped[Optional[str]]
 
+
 class PassedCaptchaUserORM(Base):
-    __tablename__ = 'passed_captcha_user_table'
+    __tablename__ = "passed_captcha_user_table"
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+
 
 @dataclass
 class BasePerm:
@@ -131,13 +133,15 @@ class BasePerm:
     can_pin_messages: Mapped[bool]
     can_manage_topics: Mapped[bool]
 
+
 class UserPermORM(Base, BasePerm):
-    __tablename__ = 'user_perm_table'
+    __tablename__ = "user_perm_table"
 
     chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))
     user_id: Mapped[int] = mapped_column(BigInteger)
 
+
 class ChatPermORM(Base, BasePerm):
-    __tablename__ = 'chat_perm_table'
-    
+    __tablename__ = "chat_perm_table"
+
     chat_id: Mapped[int] = mapped_column(BigInteger, ForeignKey("chat_table.id"))

@@ -11,7 +11,6 @@ from app.utils.contrib import (
     MUTE_FOREVER,
     get_user_id_name,
     get_user_id_name_period,
-    time_text_to_seconds,
 )
 from app.utils.for_logging import name_in_log
 from app.utils.rest_handler import MuteRestHandler

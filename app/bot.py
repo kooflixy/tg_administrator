@@ -18,41 +18,42 @@ async def main():
 
     # fmt: off
     dp.include_routers(
-        user_commands.router,
+        administration.ban.router,  
+        administration.close.router,  
+        administration.kick.router,  
+        administration.linkto.router,  
+        administration.list.router,  
+        administration.mute.router,  
+        administration.perm.router,  
+        administration.warn.router,  
 
-        delete_sys_message.router,
+        captcha.router,  
 
-        captcha.router,
+        delete_sys_message.router,  
 
-        pagination.router,
+        pagination.router,  
 
-        settings.set_text.router,
-        settings.linkto.router,
-        settings.captcha.router,
-        settings.warn.router,
+        settings.captcha.router,  
+        settings.linkto.router,  
+        settings.set_text.router,  
+        settings.warn.router,  
 
-        settings.distribution_settings.distribution.router,
-        settings.distribution_settings.adding_distribution.router,
-        settings.distribution_settings.distribution_chat.router,
-        settings.distribution_settings.adding_distribution_chat.router,
+        settings.chat_settings.adding_chat.router,  
+        settings.chat_settings.chat.router,  
 
-        settings.chat_settings.chat.router,
-        settings.chat_settings.adding_chat.router,
+        settings.distribution_settings.adding_distribution.router,  
+        settings.distribution_settings.adding_distribution_chat.router,  
+        settings.distribution_settings.distribution.router,  
+        settings.distribution_settings.distribution_chat.router,  
 
-        settings.moderator_settings.moderator.router,
-        settings.moderator_settings.adding_moderator.router,
-        settings.moderator_settings.moderator_chat.router,
-        settings.moderator_settings.adding_moderator_chat.router,
+        settings.moderator_settings.adding_moderator.router,  
+        settings.moderator_settings.adding_moderator_chat.router,  
+        settings.moderator_settings.moderator.router,  
+        settings.moderator_settings.moderator_chat.router,  
 
-        administration.ban.router,
-        administration.kick.router,
-        administration.mute.router,
-        administration.warn.router,
-        administration.list.router,
-        administration.close.router,
-        administration.linkto.router,
-
-        error.router,
+        user_commands.router,  
+        
+        error.router,  
     )
     # fmt: on
 

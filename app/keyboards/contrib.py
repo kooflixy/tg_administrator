@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from aiogram.filters.callback_data import CallbackData
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
@@ -8,6 +9,16 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 @dataclass
 class ModerIdArg:
     moderator_id: int
+
+
+@dataclass
+class UserIdArg:
+    user_id: Optional[int]
+
+
+@dataclass
+class PermNameArg:
+    perm: str
 
 
 @dataclass

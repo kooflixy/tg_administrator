@@ -3,6 +3,7 @@ from typing import Optional
 
 from sqlalchemy import delete, desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from db.models import ChatORM, PassedCaptchaUserORM
 from db.queries import BaseORMHandler
 
