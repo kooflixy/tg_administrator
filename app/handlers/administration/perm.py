@@ -61,7 +61,7 @@ async def get_user_perm(message: Message, command: CommandObject):
         )
 
 
-@router.callback_query(ChangePermCD.filter(F.user_id != None))
+@router.callback_query(ChangePermCD.filter())
 async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD):
 
     if not await PermRestHandler.is_perm_exists(
@@ -97,7 +97,7 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
         pass
 
 
-@router.callback_query(ResetPermCD.filter(F.user_id != None))
+@router.callback_query(ResetPermCD.filter())
 async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
     if not await PermRestHandler.is_perm_exists(
         callback.from_user.id, callback_data.chat_id

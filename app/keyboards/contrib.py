@@ -13,13 +13,11 @@ class ModerIdArg:
 
 @dataclass
 class UserIdArg:
-    user_id: Optional[int]
-
+    user_id: int
 
 @dataclass
 class PermNameArg:
     perm: str
-
 
 @dataclass
 class DistIdArg:
