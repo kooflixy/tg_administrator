@@ -96,6 +96,8 @@ class UserRest:
 class BaRestORM(Base, UserRest):
     __tablename__ = "ba_rest_table"
 
+    chat_id = None
+
 
 class BanRestORM(Base, UserRest):
     __tablename__ = "ban_rest_table"

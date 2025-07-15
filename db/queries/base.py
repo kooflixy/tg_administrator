@@ -46,7 +46,7 @@ class BaseORMHandler(Generic[ModelType], ABC):
         return obj_list
 
     @classmethod
-    async def get_all(cls, session: AsyncSession, query) -> list[Optional[ModelType]]:
+    async def get_all(cls, session: AsyncSession) -> list[Optional[ModelType]]:
         """Получает все существующие записи"""
         query = select(cls.model_cls)
 

@@ -18,6 +18,7 @@ async def main():
 
     # fmt: off
     dp.include_routers(
+        administration.ba.router,  
         administration.ban.router,  
         administration.close.router,  
         administration.kick.router,  

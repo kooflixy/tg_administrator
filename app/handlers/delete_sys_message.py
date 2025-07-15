@@ -29,6 +29,7 @@ async def react_new_member(event: ChatMemberUpdated):
     if changeable_settings.captcha_status:
         await captcha_check(event)
 
+    # применение мута или других ограничений пользователя, если они были до бана/кика
     async with async_session_factory() as session:
         mute_rest = await MuteRestHandler._is_rest_exists(
             session, event.chat.id, event.new_chat_member.user.id

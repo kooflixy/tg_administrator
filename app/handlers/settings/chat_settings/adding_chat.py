@@ -98,10 +98,14 @@ async def input_chat_url(message: Message, state: FSMContext):
 
             # Добавление чата в отслеживаемые
             await ChatORMHandler.insert(session, chat_id, chat.title)
-            chat_perms = ChatPermORM(
-                chat_id=chat_id,
-                **permissions_to_dict((await bot.get_chat(chat_id)).permissions),
-            )
+            try:
+                chat_perms = ChatPermORM(
+                    chat_id=chat_id,
+                    **permissions_to_dict((await bot.get_chat(chat_id)).permissions),
+                )
+            except:
+                await message.reply("Добавьте бота в группу")
+                return
             session.add(chat_perms)
             await session.commit()
     except:
