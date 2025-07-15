@@ -142,6 +142,10 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     welcome_message = await callback.message.answer(
         f"{tag_user_text}, добро пожаловать!"
     )
+
+    # снимает мут
+    await bot.promote_chat_member(callback.message.chat.id, callback_data.user_id)
+
     await bot.delete_message(
         chat_id=callback.message.chat.id, message_id=callback_data.captcha_msg_id
     )  # Удаляем сообщение с капчой
@@ -151,32 +155,5 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     await bot.delete_message(
         chat_id=welcome_message.chat.id, message_id=welcome_message.message_id
     )  # Удаляем сообщение с добро пожаловать!
-
-    async with async_session_factory() as session:
-        mute_rest = await MuteRestHandler._is_rest_exists(
-            session, callback.message.chat.id, callback_data.user_id
-        )
-        if mute_rest:
-            await bot.restrict_chat_member(
-                callback.message.chat.id,
-                callback_data.user_id,
-                permissions=ChatPermissions(can_send_messages=False),
-                until_date=mute_rest.created_at + mute_rest.period,
-            )
-        else:
-            user_perms = await PermRestHandler.get_by_user_chat_ids(
-                session, callback_data.user_id, callback.message.chat.id
-            )
-            if user_perms:
-                user_perms = permissions_to_dict(user_perms)
-                await bot.restrict_chat_member(
-                    callback.message.chat.id,
-                    callback_data.user_id,
-                    permissions=ChatPermissions(**user_perms),
-                )
-            else:
-                await bot.promote_chat_member(
-                    callback.message.chat.id, callback_data.user_id
-                )
 
     log.info("%s успешно прошел капчу", name_in_log.user(callback))

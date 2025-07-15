@@ -108,7 +108,7 @@ async def get_mute_list(message: Message, command: CommandObject):
                 else "<b><i>Аккаунт удален<i></b>"
             )
 
-            if muted_user.period >= MUTE_FOREVER:
+            if not muted_user.period:
                 until_date_str = "навсегда"
             else:
                 until_date_str = (

@@ -19,7 +19,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         res = []
         for mute in mutes_list:
             if mute:
-                if mute.period >= MUTE_FOREVER:
+                if not mute.period:
                     res.append(mute)
                     continue
                 if mute.created_at.replace(
@@ -59,7 +59,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
     async def _is_rest_exists(cls, session, chat_id, user_id):
         obj = await super()._is_rest_exists(session, chat_id, user_id)
         if obj:
-            if obj.period >= MUTE_FOREVER:
+            if not obj.period:
                 return obj
             is_unmuted = obj.created_at.replace(
                 tzinfo=timezone.utc
@@ -73,7 +73,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         obj = await super()._is_rest_exists(session, chat_id, user_id)
         is_unmuted = None
         if obj:
-            if obj.period >= MUTE_FOREVER:
+            if not obj.period:
                 return obj, False
             is_unmuted = obj.created_at.replace(
                 tzinfo=timezone.utc

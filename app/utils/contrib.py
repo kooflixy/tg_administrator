@@ -11,7 +11,7 @@ from aiogram.types import ChatPermissions, Message
 from app.bot_obj import bot
 from app.utils.telthon_manager import TelethonManager
 
-MUTE_FOREVER = timedelta(days=366)
+MUTE_FOREVER = "FOREVER"
 
 log = getLogger(__name__)
 

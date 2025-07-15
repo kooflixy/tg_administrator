@@ -60,8 +60,10 @@ async def mute_user(message: Message, command: CommandObject):
         name_in_log.user(message),
         user,
         message.chat.id,
-        "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
+        period,
     )
+
+    period_time = None if period == MUTE_FOREVER else period
 
     async with async_session_factory() as session:
         rest = await MuteRestHandler.apply_restriction(
@@ -69,10 +71,10 @@ async def mute_user(message: Message, command: CommandObject):
             moderator_id=message.from_user.id,
             chat_id=message.chat.id,
             user_id=user.id,
-            period=period,
+            period=period_time,
         )
         if rest:
-            if period < MUTE_FOREVER:
+            if period != MUTE_FOREVER:
                 until = get_local_time() + period
                 until_str = f"до {until.strftime('%Y-%m-%d %H:%M')} МСК"
             else:
@@ -81,7 +83,7 @@ async def mute_user(message: Message, command: CommandObject):
                 message.chat.id,
                 user.id,
                 ChatPermissions(can_send_messages=False),
-                until_date=period,
+                until_date=period_time,
             )
             await session.commit()
             log.info(
@@ -89,7 +91,7 @@ async def mute_user(message: Message, command: CommandObject):
                 name_in_log.user(message),
                 user,
                 message.chat.id,
-                "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
+                period,
             )
 
             await RestChecker.reply_n_delete(
@@ -102,7 +104,7 @@ async def mute_user(message: Message, command: CommandObject):
                 name_in_log.user(message),
                 user,
                 message.chat.id,
-                "MUTE_FOREVER" if period >= MUTE_FOREVER else period,
+                period,
             )
             await RestChecker.reply_n_delete(
                 f"😆 {TextMarkup.tag_user(user.name, user.id)} уже находится в муте",

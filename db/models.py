@@ -103,7 +103,7 @@ class BanRestORM(Base, UserRest):
 
 class MuteRestORM(Base, UserRest):
     __tablename__ = "mute_rest_table"
-    period: Mapped[timedelta]
+    period: Mapped[Optional[timedelta]]
 
 
 class WarnRestORM(Base, UserRest):

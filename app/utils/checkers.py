@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import (
@@ -104,7 +104,10 @@ class RestChecker:
     @classmethod
     @validate_call
     async def is_mute_data_valid(
-        cls, user: Optional[Any], period: Optional[timedelta], message: Message
+        cls,
+        user: Optional[Any],
+        period: Optional[Union[timedelta, str]],
+        message: Message,
     ) -> bool:
         if message.reply_to_message:
             if not period:
@@ -120,6 +123,9 @@ class RestChecker:
             if not period:
                 await cls.reply_n_delete("Введен неправильный формат времени", message)
                 return False
+
+        if period == MUTE_FOREVER:
+            return True
 
         if period < timedelta(seconds=60):
             await cls.reply_n_delete("Нельзя мутить на время меньше минуты", message)
