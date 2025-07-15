@@ -21,7 +21,5 @@ async def react_new_member(event: ChatMemberUpdated):
 
     log.info("%s вошел в чат %s", name_in_log.user(event), name_in_log.chat(event))
 
-    # НУЖНО СДЕЛАТЬ ПРОВЕРКУ НА БЫЛ ЛИ ПОЛЬЗОВАТЕЛЬ В МУТЕ ДО ВЫХОДА
-
     if changeable_settings.captcha_status:
         await captcha_check(event)

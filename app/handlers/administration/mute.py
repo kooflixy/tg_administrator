@@ -13,8 +13,10 @@ from app.utils.contrib import (
     get_user_id_name_period,
 )
 from app.utils.for_logging import name_in_log
+from app.utils.perm import permissions_to_dict
 from app.utils.rest_handler import MuteRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
+from app.utils.rest_handler.perm_rest import PermRestHandler
 from app.utils.text_markup import TextMarkup
 from app.utils.time import get_local_time
 from db.database import async_session_factory
@@ -151,9 +153,17 @@ async def unmute_user(message: Message, command: CommandObject):
             )
 
         else:
-            await bot.restrict_chat_member(
-                message.chat.id, user.id, ChatPermissions(can_send_messages=True)
+            user_perms = await PermRestHandler.get_by_user_chat_ids(
+                session, user.id, message.chat.id
             )
+            if not user_perms:
+                await bot.promote_chat_member(message.chat.id, user.id)
+            else:
+                user_perms = permissions_to_dict(user_perms)
+
+                await bot.restrict_chat_member(
+                    message.chat.id, user.id, ChatPermissions(**user_perms)
+                )
             # удаление мута из бд
             await MuteRestHandler.remove(
                 session, chat_id=message.chat.id, user_id=user.id

@@ -2,12 +2,15 @@ import asyncio
 from logging import getLogger
 
 from aiogram import Router
-from aiogram.types import CallbackQuery, ChatMemberUpdated
+from aiogram.types import CallbackQuery, ChatMemberUpdated, ChatPermissions
 
 from app.bot_obj import bot
 from app.keyboards.captcha_btn import CaptchaPassedCD, captcha_btn_ikb
 from app.utils.for_logging import name_in_log
+from app.utils.perm import permissions_to_dict
 from app.utils.rest_handler.ban_rest import BanRestHandler
+from app.utils.rest_handler.mute_rest import MuteRestHandler
+from app.utils.rest_handler.perm_rest import PermRestHandler
 from app.utils.text_markup import TextMarkup
 from config import changeable_settings
 from db.database import async_session_factory
@@ -56,6 +59,12 @@ async def captcha_check(event: ChatMemberUpdated):
             return
 
     not_passed_captcha_users.append(new_member.id)
+
+    await bot.restrict_chat_member(
+        event.chat.id,
+        event.new_chat_member.user.id,
+        permissions=ChatPermissions(can_send_messages=False),
+    )
 
     # Отвечаем пользователю, сразу же добавляя кнопку капчи
     captcha_msg = await event.answer(
@@ -142,5 +151,32 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     await bot.delete_message(
         chat_id=welcome_message.chat.id, message_id=welcome_message.message_id
     )  # Удаляем сообщение с добро пожаловать!
+
+    async with async_session_factory() as session:
+        mute_rest = await MuteRestHandler._is_rest_exists(
+            session, callback.message.chat.id, callback_data.user_id
+        )
+        if mute_rest:
+            await bot.restrict_chat_member(
+                callback.message.chat.id,
+                callback_data.user_id,
+                permissions=ChatPermissions(can_send_messages=False),
+                until_date=mute_rest.created_at + mute_rest.period,
+            )
+        else:
+            user_perms = await PermRestHandler.get_by_user_chat_ids(
+                session, callback_data.user_id, callback.message.chat.id
+            )
+            if user_perms:
+                user_perms = permissions_to_dict(user_perms)
+                await bot.restrict_chat_member(
+                    callback.message.chat.id,
+                    callback_data.user_id,
+                    permissions=ChatPermissions(**user_perms),
+                )
+            else:
+                await bot.promote_chat_member(
+                    callback.message.chat.id, callback_data.user_id
+                )
 
     log.info("%s успешно прошел капчу", name_in_log.user(callback))

@@ -10,6 +10,7 @@ from app.keyboards.perm import ChangePermCD, ResetPermCD, get_perm_list_ikb
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name_reason
 from app.utils.perm import permissions_to_dict
+from app.utils.rest_handler.mute_rest import MuteRestHandler
 from app.utils.rest_handler.perm_rest import PermRestHandler
 from app.utils.text_markup import TextMarkup
 from db.database import async_session_factory
@@ -70,6 +71,12 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
         return
 
     async with async_session_factory() as session:
+        if await MuteRestHandler._is_rest_exists(
+            session, callback_data.chat_id, callback_data.user_id
+        ):
+            await callback.answer("Пользователь находится в муте")
+            return
+
         user_perms = await PermRestHandler.get_by_user_chat_ids(
             session, callback_data.user_id, callback_data.chat_id
         )
@@ -77,15 +84,19 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
             chat = await bot.get_chat(callback_data.chat_id)
             user_perms = chat.permissions
         user_perms = permissions_to_dict(user_perms)
+
         user_perms[callback_data.perm] = not user_perms[callback_data.perm]
+
         await bot.restrict_chat_member(
             callback_data.chat_id, callback_data.user_id, ChatPermissions(**user_perms)
         )
         user = await bot.get_chat_member(callback_data.chat_id, callback_data.user_id)
         user_perms = permissions_to_dict(user)
+
         await PermRestHandler.change_user_perm(
             session, callback_data.user_id, callback_data.chat_id, user_perms
         )
+
         await session.commit()
     try:
         await callback.message.edit_reply_markup(
@@ -105,6 +116,12 @@ async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
         return
 
     async with async_session_factory() as session:
+        if await MuteRestHandler._is_rest_exists(
+            session, callback_data.chat_id, callback_data.user_id
+        ):
+            await callback.answer("Пользователь находится в муте")
+            return
+
         user_perms = await PermRestHandler.get_by_user_chat_ids(
             session, callback_data.user_id, callback_data.chat_id
         )
@@ -113,13 +130,11 @@ async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
             await session.delete(user_perms)
             await session.commit()
 
-        chat_perms = (await bot.get_chat(callback_data.chat_id)).permissions
-        await bot.restrict_chat_member(
-            callback_data.chat_id, callback_data.user_id, permissions=chat_perms
-        )
+        await bot.promote_chat_member(callback_data.chat_id, callback_data.user_id)
 
     await callback.answer("Права успешно сброшены")
 
+    chat_perms = (await bot.get_chat(callback_data.chat_id)).permissions
     chat_perms = permissions_to_dict(chat_perms)
 
     try:
