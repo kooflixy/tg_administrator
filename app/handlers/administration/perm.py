@@ -1,3 +1,5 @@
+import asyncio
+from datetime import timedelta
 from logging import getLogger
 
 from aiogram import F, Router
@@ -21,6 +23,7 @@ router = Router()
 
 log = getLogger(__name__)
 
+TIMEOUT = timedelta(seconds=40)
 
 @router.message(Command("perm"))
 async def get_user_perm(message: Message, command: CommandObject):
@@ -56,10 +59,15 @@ async def get_user_perm(message: Message, command: CommandObject):
         else:
             chat = await bot.get_chat(message.chat.id)
             user_perms = permissions_to_dict(chat.permissions)
-        await message.reply(
+        repl_msg = await message.reply(
             f"Права {TextMarkup.tag_user(user.name, user.id)}:",
             reply_markup=get_perm_list_ikb(user_perms, message.chat.id, user.id),
         )
+    
+    await asyncio.sleep(TIMEOUT.total_seconds())
+
+    await bot.delete_message(message.chat.id, repl_msg.message_id)
+
 
 
 @router.callback_query(ChangePermCD.filter())
