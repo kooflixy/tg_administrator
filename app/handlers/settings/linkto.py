@@ -18,12 +18,8 @@ router = Router()
 
 @router.callback_query(SettingsTypeCD.filter(F.type == SettingsType.LINKTO))
 async def get_linkto_settings(callback: CallbackQuery, callback_data: SettingsTypeCD):
-    id_ = (
-        str(changeable_settings.linkto_chat_id)
-        if changeable_settings.linkto_chat_id
-        else changeable_settings.linkto_chat_id
-    )
-    if id_:
+    if changeable_settings.linkto_chat_id:
+        id_ = str(changeable_settings.linkto_chat_id)
         if id_[:4] == "-100":
             id_ = id_[4:]
         elif id_[:1] == "-":

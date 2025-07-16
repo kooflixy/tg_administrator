@@ -21,6 +21,7 @@ class SettingsType:
     CAPTCHA = "captcha"
     WARN = "warn"
     LINKTO = "linkto"
+    BA = "ba"
 
 
 class SettingsTypeCD(CallbackData, prefix="setts_type"):
@@ -44,6 +45,10 @@ def settings_menu_ikb():
     )
     builder.button(
         text="🔀Линковка", callback_data=SettingsTypeCD(type=SettingsType.LINKTO).pack()
+    )
+    builder.button(
+        text="😈Бан по сети чатов",
+        callback_data=SettingsTypeCD(type=SettingsType.BA).pack(),
     )
 
     builder.adjust(*([1] * (BTN_COUNT % 2) + [2] * (BTN_COUNT // 2)))

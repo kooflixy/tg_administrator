@@ -34,6 +34,7 @@ async def main():
 
         pagination.router,  
 
+        settings.ba.router,  
         settings.captcha.router,  
         settings.linkto.router,  
         settings.set_text.router,  
