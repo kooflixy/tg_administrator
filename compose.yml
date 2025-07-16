@@ -49,6 +49,8 @@ services:
       - "postgres:dbps"
     networks:
       - dbnet
+    volumes:
+      - ./:/app/db/data
     depends_on:
       - postgres
 

@@ -200,3 +200,4 @@ test.py
 *.session-journal
 
 db/data/
+changeable_settings_data.json
