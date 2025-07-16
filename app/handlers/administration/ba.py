@@ -15,6 +15,7 @@ from app.utils.contrib import (
 )
 from app.utils.rest_handler import BanRestHandler, BaRestHandler
 from app.utils.text_markup import TextMarkup
+from config import changeable_settings
 from db.database import async_session_factory
 from db.queries.chat_orm import ChatORMHandler
 from db.queries.moderator_orm import ModeratorORMHandler
@@ -28,7 +29,7 @@ TIMEOUT = timedelta(minutes=2)
 
 @router.message(Command("ba"))
 async def ba_user(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
+    if message.chat.id != changeable_settings.ba_chat_id:
         return
 
     if not await BanRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
@@ -78,10 +79,31 @@ async def ba_user(message: Message, command: CommandObject):
                         chat.id,
                         user.id,
                     )
+
+                # рассылка уведомлений в чаты
                 msg: Message = await bot.send_message(
                     chat.id, f"Пользователь {user_str} был забанен"
                 )
                 msgs_list.append(msg)
+
+            # пост в канал
+            if changeable_settings.ba_channel_id:
+                try:
+                    post_msg = await bot.send_message(
+                        changeable_settings.ba_channel_id,
+                        f"""<b>🌟ID:</b> <code>{user.id}</code>
+<b>👤Пользователь:</b> {TextMarkup.tag_user(user.name, user.id)}
+<b>📋Причина:</b> {reason}
+<a href="{url}">доказательства</a>""",
+                    )
+                    rest.msg_id = post_msg.message_id
+                except:
+                    log.exception(
+                        "При попытке отправить пост о бане в канал произошла ошибка channel_id=%s user_id=%s",
+                        changeable_settings.ba_channel_id,
+                        user.id,
+                    )
+
             await session.commit()
             await RestChecker.reply_n_delete(
                 f"{user_str} успешно забанен по всей сети чатов", message
@@ -100,7 +122,7 @@ async def ba_user(message: Message, command: CommandObject):
 
 @router.message(Command("unba"))
 async def unba_user(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
+    if message.chat.id != changeable_settings.ba_chat_id:
         return
 
     if not await BanRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
@@ -122,8 +144,21 @@ async def unba_user(message: Message, command: CommandObject):
         rest = await BaRestHandler._is_rest_exists(session, user.id)
 
         if not rest:
-            await RestChecker(f"{user_str} не забанен по всей сети чатов")
+            await RestChecker.reply_n_delete(
+                f"{user_str} не забанен по всей сети чатов", message
+            )
             return
+
+        # удаление поста в канале
+        if changeable_settings.ba_channel_id and rest.msg_id:
+            try:
+                await bot.delete_message(changeable_settings.ba_channel_id, rest.msg_id)
+            except:
+                log.exception(
+                    "При попытке удалить пост о бане в канале произошла ошибка channel_id=%s user_id=%s",
+                    changeable_settings.ba_channel_id,
+                    user.id,
+                )
 
         await BaRestHandler.remove(session, user.id)
 

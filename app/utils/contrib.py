@@ -234,10 +234,10 @@ def get_msg_url_reason(
     return msg_url, reason
 
 
-def get_user_id_name_reason_url(
+async def get_user_id_name_reason_url(
     message: Message, command: CommandObject
 ) -> tuple[Optional[User], Optional[str], Optional[str]]:
-    user, reason_url = get_user_id_name_reason(message, command)
+    user, reason_url = await get_user_id_name_reason(message, command)
 
     if reason_url:
         reason_url_split = reason_url.split()

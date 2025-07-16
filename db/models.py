@@ -97,6 +97,7 @@ class BaRestORM(Base, UserRest):
     __tablename__ = "ba_rest_table"
 
     chat_id = None
+    msg_id: Mapped[Optional[int]] = mapped_column(BigInteger)
 
 
 class BanRestORM(Base, UserRest):

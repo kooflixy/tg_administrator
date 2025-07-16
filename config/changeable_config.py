@@ -47,6 +47,9 @@ class ChangeableSettings(BaseModel):
 
     linkto_chat_id: Optional[Union[str, int]] = None
 
+    ba_chat_id: Optional[Union[str, int]] = None
+    ba_channel_id: Optional[Union[str, int]] = None
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 
