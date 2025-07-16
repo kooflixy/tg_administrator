@@ -232,3 +232,23 @@ def get_msg_url_reason(
         reason = message.text[url_ent.offset + url_ent.length :].strip()
 
     return msg_url, reason
+
+
+def get_user_id_name_reason_url(
+    message: Message, command: CommandObject
+) -> tuple[Optional[User], Optional[str], Optional[str]]:
+    user, reason_url = get_user_id_name_reason(message, command)
+
+    if reason_url:
+        reason_url_split = reason_url.split()
+        if reason_url_split[-1][:13] == "https://t.me/":
+            reason = " ".join(reason_url_split[:-1])
+            url = reason_url_split[-1]
+        else:
+            reason = reason_url
+            url = None
+    else:
+        reason = None
+        url = None
+
+    return user, reason, url

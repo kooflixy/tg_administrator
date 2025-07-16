@@ -147,3 +147,13 @@ class RestChecker:
             return False
 
         return True
+
+    @classmethod
+    async def is_ba_data_valid(
+        cls,
+        user: Optional[Any],
+        reason: Optional[str],
+        url: Optional[str],
+        message: Message,
+    ) -> bool:
+        return user and reason and url

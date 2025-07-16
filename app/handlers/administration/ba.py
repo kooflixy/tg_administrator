@@ -1,3 +1,5 @@
+import asyncio
+from datetime import timedelta
 from logging import getLogger
 
 from aiogram import Router
@@ -6,7 +8,11 @@ from aiogram.types import Message
 
 from app.bot_obj import bot
 from app.utils.checkers import RestChecker
-from app.utils.contrib import get_user_id_name
+from app.utils.contrib import (
+    get_user_id_name,
+    get_user_id_name_reason,
+    get_user_id_name_reason_url,
+)
 from app.utils.rest_handler import BanRestHandler, BaRestHandler
 from app.utils.text_markup import TextMarkup
 from db.database import async_session_factory
@@ -16,6 +22,8 @@ from db.queries.moderator_orm import ModeratorORMHandler
 log = getLogger(__name__)
 
 router = Router()
+
+TIMEOUT = timedelta(minutes=2)
 
 
 @router.message(Command("ba"))
@@ -27,7 +35,10 @@ async def ba_user(message: Message, command: CommandObject):
         return
 
     # Получение пользователя
-    user = await get_user_id_name(message, command)
+    user, reason, url = await get_user_id_name_reason_url(message, command)
+
+    if not await RestChecker.is_ba_data_valid(user, reason, url, message):
+        return
 
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user, message):
@@ -56,6 +67,7 @@ async def ba_user(message: Message, command: CommandObject):
 
         user_str = TextMarkup.tag_user(user.name, user.id)
         if rest:
+            msgs_list = list()
             chats_list = await ChatORMHandler.get_all(session)
             for chat in chats_list:
                 try:
@@ -66,10 +78,20 @@ async def ba_user(message: Message, command: CommandObject):
                         chat.id,
                         user.id,
                     )
+                msg: Message = await bot.send_message(
+                    chat.id, f"Пользователь {user_str} был забанен"
+                )
+                msgs_list.append(msg)
             await session.commit()
             await RestChecker.reply_n_delete(
                 f"{user_str} успешно забанен по всей сети чатов", message
             )
+            await asyncio.sleep(TIMEOUT.total_seconds())
+            for msg in msgs_list:
+                try:
+                    await bot.delete_message(msg.chat.id, msg.message_id)
+                except:
+                    pass
         else:
             await RestChecker.reply_n_delete(
                 f"{user_str} уже забанен по всей сети чатов", message
@@ -111,7 +133,12 @@ async def unba_user(message: Message, command: CommandObject):
         ]
         chats_list = await ChatORMHandler.get_all(session)
 
+        msgs_list = list()
         for chat in chats_list:
+            msg: Message = await bot.send_message(
+                chat.id, f"Пользователь {user_str} был разбанен"
+            )
+            msgs_list.append(msg)
             if chat.id in bans_chat_ids_list:
                 continue
             try:
@@ -121,4 +148,13 @@ async def unba_user(message: Message, command: CommandObject):
 
         await session.commit()
 
-    await RestChecker.reply_n_delete(f"{user_str} успешно разбанен по сети чатов")
+    await RestChecker.reply_n_delete(
+        f"{user_str} успешно разбанен по сети чатов", message
+    )
+
+    await asyncio.sleep(TIMEOUT.total_seconds())
+    for msg in msgs_list:
+        try:
+            await bot.delete_message(msg.chat.id, msg.message_id)
+        except:
+            pass
