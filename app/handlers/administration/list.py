@@ -7,6 +7,7 @@ from aiogram.types import Message
 from app.bot_obj import bot
 from app.utils.checkers import RestChecker
 from app.utils.contrib import MUTE_FOREVER, get_user_id_name
+from app.utils.middleware import IsChatMonitored
 from app.utils.rest_handler.ban_rest import BanRestHandler
 from app.utils.rest_handler.mute_rest import MuteRestHandler
 from app.utils.rest_handler.warn_rest import WarnRestHandler
@@ -22,10 +23,8 @@ router = Router()
 DELETE_TIME = 60
 
 
-@router.message(Command("banlist"))
+@router.message(Command("banlist"), IsChatMonitored())
 async def get_ban_list(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     chat_member = await bot.get_chat_member(message.chat.id, message.from_user.id)
 
@@ -71,10 +70,8 @@ async def get_ban_list(message: Message, command: CommandObject):
     await RestChecker.reply_n_delete(text, message, DELETE_TIME)
 
 
-@router.message(Command("mutelist"))
+@router.message(Command("mutelist"), IsChatMonitored())
 async def get_mute_list(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     chat_member = await bot.get_chat_member(message.chat.id, message.from_user.id)
 
@@ -130,11 +127,8 @@ async def get_mute_list(message: Message, command: CommandObject):
     await RestChecker.reply_n_delete(text, message, DELETE_TIME)
 
 
-@router.message(Command("warnlist"))
+@router.message(Command("warnlist"), IsChatMonitored())
 async def get_warn_list(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
-
     chat_member = await bot.get_chat_member(message.chat.id, message.from_user.id)
 
     # Проверка, является ли пользователь модератором чата

@@ -7,6 +7,7 @@ from aiogram.types import ChatPermissions, Message
 from app.bot_obj import bot
 from app.utils.checkers import RestChecker
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsChatMonitored
 from app.utils.perm import permissions_to_dict
 from app.utils.rest_handler.close_rest import CloseRestHandler
 from app.utils.rest_handler.perm_rest import PermRestHandler
@@ -21,10 +22,8 @@ log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("close"))
+@router.message(Command("close"), IsChatMonitored())
 async def close_chat(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     if not await CloseRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
@@ -84,10 +83,8 @@ async def close_chat(message: Message, command: CommandObject):
     await RestChecker.reply_n_delete(changeable_settings.close_text, message, 180)
 
 
-@router.message(Command("open"))
+@router.message(Command("open"), IsChatMonitored())
 async def open_chat(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     if not await CloseRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return

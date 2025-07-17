@@ -8,6 +8,7 @@ from app.bot_obj import bot
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsChatMonitored
 from app.utils.rest_handler import KickRestHandler
 from app.utils.text_markup import TextMarkup
 from db.queries.chat_orm import ChatORMHandler
@@ -17,10 +18,8 @@ log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("kick"))
+@router.message(Command("kick"), IsChatMonitored())
 async def kick_user(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     if not await KickRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return

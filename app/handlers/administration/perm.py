@@ -11,6 +11,7 @@ from app.bot_obj import bot
 from app.keyboards.perm import ChangePermCD, ResetPermCD, get_perm_list_ikb
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name_reason
+from app.utils.middleware import IsChatMonitored
 from app.utils.perm import permissions_to_dict
 from app.utils.rest_handler.mute_rest import MuteRestHandler
 from app.utils.rest_handler.perm_rest import PermRestHandler
@@ -26,10 +27,8 @@ log = getLogger(__name__)
 TIMEOUT = timedelta(seconds=40)
 
 
-@router.message(Command("perm"))
+@router.message(Command("perm"), IsChatMonitored())
 async def get_user_perm(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     if not await PermRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return

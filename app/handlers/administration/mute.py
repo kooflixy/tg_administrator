@@ -13,6 +13,7 @@ from app.utils.contrib import (
     get_user_id_name_period,
 )
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsChatMonitored
 from app.utils.perm import permissions_to_dict
 from app.utils.rest_handler import MuteRestHandler
 from app.utils.rest_handler.ban_rest import BanRestHandler
@@ -27,10 +28,8 @@ log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("mute"))
+@router.message(Command("mute"), IsChatMonitored())
 async def mute_user(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     if not await MuteRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return
@@ -112,10 +111,8 @@ async def mute_user(message: Message, command: CommandObject):
             )
 
 
-@router.message(Command("unmute"))
+@router.message(Command("unmute"), IsChatMonitored())
 async def unmute_user(message: Message, command: CommandObject):
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
-        return
 
     if not await MuteRestHandler.is_perm_exists(message.from_user.id, message.chat.id):
         return

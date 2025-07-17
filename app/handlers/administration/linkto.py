@@ -8,6 +8,7 @@ from app.bot_obj import bot
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_msg_url_reason
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsChatMonitored
 from app.utils.rest_handler import LinktoRestHandler
 from app.utils.text_markup import TextMarkup
 from config import changeable_settings
@@ -18,13 +19,10 @@ log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("linkto"))
+@router.message(Command("linkto"), IsChatMonitored())
 async def linkto(message: Message, command: CommandObject):
 
     if message.chat.type != "supergroup":
-        return
-
-    if not await ChatORMHandler.is_chat_monitored(message.chat.id):
         return
 
     if not await LinktoRestHandler.is_perm_exists(
