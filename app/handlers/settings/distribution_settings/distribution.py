@@ -18,6 +18,7 @@ from app.keyboards.settings.distribution import (
 from app.keyboards.settings_menu import DistributionListCD
 from app.utils.contrib import time_text_to_seconds
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsAdminChat
 from config import settings
 from db.database import async_session_factory
 from db.models import DistributionORM
@@ -181,12 +182,8 @@ async def remove_distribtution(
     )
 
 
-@router.message(Command("set_dist_int"))
+@router.message(Command("set_dist_int"), IsAdminChat())
 async def set_distribution_interval(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     if not command.args:
         return

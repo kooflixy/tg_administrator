@@ -25,6 +25,7 @@ log = getLogger(__name__)
 
 TIMEOUT = timedelta(seconds=40)
 
+
 @router.message(Command("perm"))
 async def get_user_perm(message: Message, command: CommandObject):
     if not await ChatORMHandler.is_chat_monitored(message.chat.id):
@@ -63,11 +64,10 @@ async def get_user_perm(message: Message, command: CommandObject):
             f"Права {TextMarkup.tag_user(user.name, user.id)}:",
             reply_markup=get_perm_list_ikb(user_perms, message.chat.id, user.id),
         )
-    
+
     await asyncio.sleep(TIMEOUT.total_seconds())
 
     await bot.delete_message(message.chat.id, repl_msg.message_id)
-
 
 
 @router.callback_query(ChangePermCD.filter())

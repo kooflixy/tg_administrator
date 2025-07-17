@@ -7,6 +7,7 @@ from aiogram.types import Message
 
 from app.utils.contrib import time_text_to_seconds
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsAdminChat
 from config import settings
 from db.database import async_session_factory
 from db.queries.distribution_orm import DistributionORMHandler
@@ -16,14 +17,10 @@ log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("add_dist"))
+@router.message(Command("add_dist"), IsAdminChat())
 async def add_dist(message: Message, command: CommandObject):
 
     if not message.reply_to_message:
-        return
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
         return
 
     interval = time_text_to_seconds(command.args)

@@ -8,6 +8,7 @@ from telethon import errors, types
 from app.keyboards.contrib import back_ibtn
 from app.keyboards.settings_menu import SettingsListCD, SettingsType, SettingsTypeCD
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsAdminChat
 from app.utils.telthon_manager import TelethonManager
 from config import changeable_settings, settings
 
@@ -47,12 +48,8 @@ async def get_ba_settings(callback: CallbackQuery, callback_data: SettingsTypeCD
     )
 
 
-@router.message(Command("set_ba_chat"))
+@router.message(Command("set_ba_chat"), IsAdminChat())
 async def set_ba_chat(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     if not command.args:
         return
@@ -102,12 +99,8 @@ async def set_ba_chat(message: Message, command: CommandObject):
     log.info("id ba-чата изменено ba_chat_id=%s", changeable_settings.ba_chat_id)
 
 
-@router.message(Command("set_ba_channel"))
+@router.message(Command("set_ba_channel"), IsAdminChat())
 async def set_ba_channel(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     if not command.args:
         return

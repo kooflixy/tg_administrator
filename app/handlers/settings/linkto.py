@@ -8,6 +8,7 @@ from telethon import errors, types
 from app.keyboards.contrib import back_ibtn
 from app.keyboards.settings_menu import SettingsListCD, SettingsType, SettingsTypeCD
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsAdminChat
 from app.utils.telthon_manager import TelethonManager
 from config import changeable_settings, settings
 
@@ -43,12 +44,8 @@ async def get_linkto_settings(callback: CallbackQuery, callback_data: SettingsTy
     )
 
 
-@router.message(Command("set_linkto_chat"))
+@router.message(Command("set_linkto_chat"), IsAdminChat())
 async def set_linkto_chat(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     if not command.args:
         return

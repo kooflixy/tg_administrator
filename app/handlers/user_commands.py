@@ -7,18 +7,15 @@ from aiogram.types import CallbackQuery, Message
 from app.keyboards.settings_menu import SettingsListCD, settings_menu_ikb
 from app.keyboards.user_commands import menu_rkb
 from app.utils.for_logging import name_in_log
+from app.utils.middleware import IsAdminChat
 from config import settings
 
 log = getLogger(__name__)
 router = Router()
 
 
-@router.message(CommandStart())
+@router.message(CommandStart(), IsAdminChat())
 async def start(message: Message):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     await message.answer(
         "Привет! Это твой бот для управления чатами:)", reply_markup=menu_rkb
@@ -28,14 +25,11 @@ async def start(message: Message):
 
 
 @router.message(
-    or_f(Command("settings"), F.text.casefold().in_(["⚙настройки", "настройки"]))
+    or_f(Command("settings"), F.text.casefold().in_(["⚙настройки", "настройки"])),
+    IsAdminChat(),
 )
 async def settings_cmd(message: Message):
     log.debug("%s запросил настройки бота", name_in_log.user(message))
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     await message.answer(
         f"Вот список настроек бота, {message.from_user.full_name}",
@@ -65,14 +59,10 @@ async def settings_cmd_cq(callback: CallbackQuery):
     or_f(
         Command("commands_list"),
         F.text.casefold().in_(["📋список команд", "список команд", "команды"]),
-    )
+    ),
+    IsAdminChat(),
 )
 async def get_commands_list(message: Message):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
-
     text = """
 💖<b>Команды модерирования:</b>
 

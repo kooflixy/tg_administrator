@@ -4,6 +4,7 @@ from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message
 
+from app.utils.middleware import IsAdminChat
 from config import changeable_settings, settings
 
 log = getLogger(__name__)
@@ -11,12 +12,8 @@ log = getLogger(__name__)
 router = Router()
 
 
-@router.message(Command("set_close_text"))
+@router.message(Command("set_close_text"), IsAdminChat())
 async def set_close_text(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     changeable_settings.close_text = command.args
 
@@ -25,12 +22,8 @@ async def set_close_text(message: Message, command: CommandObject):
     log.info("Текст при закрытии чата изменен new_text=%r", command.args)
 
 
-@router.message(Command("set_already_close_text"))
+@router.message(Command("set_already_close_text"), IsAdminChat())
 async def set_close_text(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     changeable_settings.already_close_text = command.args
 
@@ -43,12 +36,8 @@ async def set_close_text(message: Message, command: CommandObject):
     )
 
 
-@router.message(Command("set_open_text"))
+@router.message(Command("set_open_text"), IsAdminChat())
 async def set_open_text(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     changeable_settings.open_text = command.args
 
@@ -57,12 +46,8 @@ async def set_open_text(message: Message, command: CommandObject):
     log.info("Текст при открытии чата изменен new_text=%r", command.args)
 
 
-@router.message(Command("set_already_open_text"))
+@router.message(Command("set_already_open_text"), IsAdminChat())
 async def set_close_text(message: Message, command: CommandObject):
-
-    # Проверка, является ли пользователь главным админом
-    if message.chat.id != settings.ADMIN_ID:
-        return
 
     changeable_settings.already_open_text = command.args
 
