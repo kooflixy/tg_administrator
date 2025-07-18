@@ -77,7 +77,7 @@ async def handle_system_messages(message: Message):
         await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
     except Exception as e:
         log.exception(
-            f"Ошибка при удалении системного сообщения chat_id=%s message_id=%s",
+            "Ошибка при удалении системного сообщения chat_id=%s message_id=%s",
             message.chat.id,
             message.message_id,
         )

@@ -11,6 +11,7 @@ from app.bot_obj import bot
 from app.keyboards.perm import ChangePermCD, ResetPermCD, get_perm_list_ikb
 from app.utils.checkers import RestChecker
 from app.utils.contrib import get_user_id_name_reason
+from app.utils.for_logging import name_in_log
 from app.utils.middleware import IsChatMonitored
 from app.utils.perm import permissions_to_dict
 from app.utils.rest_handler.mute_rest import MuteRestHandler
@@ -50,6 +51,13 @@ async def get_user_perm(message: Message, command: CommandObject):
     if await RestChecker.is_user_moderator(chat_member, message):
         return
 
+    log.info(
+        "Попытка получить права пользоватея moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
+
     async with async_session_factory() as session:
         user_perms = await PermRestHandler.get_by_user_chat_ids(
             session, user.id, message.chat.id
@@ -64,6 +72,13 @@ async def get_user_perm(message: Message, command: CommandObject):
             reply_markup=get_perm_list_ikb(user_perms, message.chat.id, user.id),
         )
 
+    log.info(
+        "Получены права пользоватея moderator=%s user=%r chat_id=%s",
+        name_in_log.user(message),
+        user,
+        message.chat.id,
+    )
+
     await asyncio.sleep(TIMEOUT.total_seconds())
 
     await bot.delete_message(message.chat.id, repl_msg.message_id)
@@ -76,6 +91,13 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
         callback.from_user.id, callback_data.chat_id
     ):
         return
+
+    log.info(
+        "Попытка изменить право пользоватея moderator_id=%s user_id=%s chat_id=%s",
+        callback.from_user.id,
+        callback_data.user_id,
+        callback.message.chat.id,
+    )
 
     async with async_session_factory() as session:
         if await MuteRestHandler._is_rest_exists(
@@ -114,6 +136,13 @@ async def change_user_perm(callback: CallbackQuery, callback_data: ChangePermCD)
     except TelegramBadRequest:
         pass
 
+    log.info(
+        "Изменено право пользоватея moderator_id=%s user_id=%s chat_id=%s",
+        callback.from_user.id,
+        callback_data.user_id,
+        callback.message.chat.id,
+    )
+
 
 @router.callback_query(ResetPermCD.filter())
 async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
@@ -121,6 +150,13 @@ async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
         callback.from_user.id, callback_data.chat_id
     ):
         return
+
+    log.info(
+        "Попытка сбросить права пользоватея moderator_id=%s user_id=%s chat_id=%s",
+        callback.from_user.id,
+        callback_data.user_id,
+        callback.message.chat.id,
+    )
 
     async with async_session_factory() as session:
         if await MuteRestHandler._is_rest_exists(
@@ -154,3 +190,10 @@ async def reset_user_perm(callback: CallbackQuery, callback_data: ResetPermCD):
         pass
     except TelegramRetryAfter:
         await callback.answer("Слишком много изменений, попробуйте позже")
+
+    log.info(
+        "Сброшены права пользоватея moderator_id=%s user_id=%s chat_id=%s",
+        callback.from_user.id,
+        callback_data.user_id,
+        callback.message.chat.id,
+    )
