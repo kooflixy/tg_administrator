@@ -5,10 +5,10 @@ from app.handlers.administration import (
     kick,
     linkto,
     list,
+    local,
     mute,
     perm,
     warn,
-    local
 )
 
 # я не знаю, что я тут понаписал

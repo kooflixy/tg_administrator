@@ -116,6 +116,17 @@ async def unlocal_user(message: Message, command: CommandObject):
             )
             return
 
+        # удаление поста в канале
+        if changeable_settings.ba_channel_id and rest.msg_id:
+            try:
+                await bot.delete_message(changeable_settings.ba_channel_id, rest.msg_id)
+            except:
+                log.exception(
+                    "При попытке удалить пост о бане в канале произошла ошибка channel_id=%s user_id=%s",
+                    changeable_settings.ba_channel_id,
+                    user.id,
+                )
+
         await BaRestHandler.remove(session, user.id)
 
         bans_chat_ids_list = [
