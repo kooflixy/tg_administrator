@@ -1,8 +1,8 @@
 from logging import getLogger
 
-from aiogram import Router
+from aiogram import F, Router
 from aiogram.filters import IS_MEMBER, IS_NOT_MEMBER, ChatMemberUpdatedFilter
-from aiogram.types import ChatMemberUpdated, ChatPermissions
+from aiogram.types import ChatMemberUpdated, ChatPermissions, Message
 
 from app.bot_obj import bot
 from app.handlers.captcha import captcha_check
@@ -58,3 +58,26 @@ async def react_new_member(event: ChatMemberUpdated):
                     event.new_chat_member.user.id,
                     permissions=ChatPermissions(**user_perms),
                 )
+
+
+@router.message(
+    F.new_chat_title
+    | F.new_chat_photo
+    | F.delete_chat_photo
+    | F.pinned_message
+    | F.group_chat_created
+    | F.supergroup_chat_created
+    | F.new_chat_members
+    | F.left_chat_member
+    | F.chat_invite_link
+    | F.new_chat_description
+)
+async def handle_system_messages(message: Message):
+    try:
+        await bot.delete_message(chat_id=message.chat.id, message_id=message.message_id)
+    except Exception as e:
+        log.exception(
+            f"Ошибка при удалении системного сообщения chat_id=%s message_id=%s",
+            message.chat.id,
+            message.message_id,
+        )
