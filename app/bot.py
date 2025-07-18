@@ -11,10 +11,13 @@ from app.handlers import (
     settings,
     user_commands,
 )
+from app.utils.middleware import AntiFloodMiddleWare
 
 
 async def main():
     dp = Dispatcher()
+
+    dp.message.middleware(AntiFloodMiddleWare())
 
     # fmt: off
     dp.include_routers(
