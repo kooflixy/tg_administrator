@@ -15,15 +15,22 @@ class TextMarkup:
 
     def get_ba_post(user_id: int, user_full_name: str, reason: str, proof: str):
         return changeable_settings.ba_post.format(
-            user_id=f"<code>{user_id}</code>", user=TextMarkup.tag_user(user_full_name, user_id), reason=reason, proof=f'<a href="{proof}">доказательства</a>'
+            user_id=f"<code>{user_id}</code>",
+            user=TextMarkup.tag_user(user_full_name, user_id),
+            reason=reason,
+            proof=f'<a href="{proof}">доказательства</a>',
         )
-    
+
     def get_ba_text(user_id: int, user_full_name: str, proof: str):
         return changeable_settings.ba_text.format(
-            user_id=f"<code>{user_id}</code>", user=TextMarkup.tag_user(user_full_name, user_id), proof=proof
+            user_id=f"<code>{user_id}</code>",
+            user=TextMarkup.tag_user(user_full_name, user_id),
+            proof=proof,
         )
-    
+
     def get_unba_text(user_id: int, user_full_name: str, proof: str):
         return changeable_settings.unba_text.format(
-            user_id=f"<code>{user_id}</code>", user=TextMarkup.tag_user(user_full_name, user_id), proof=proof
+            user_id=f"<code>{user_id}</code>",
+            user=TextMarkup.tag_user(user_full_name, user_id),
+            proof=proof,
         )

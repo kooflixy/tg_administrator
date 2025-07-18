@@ -41,7 +41,15 @@ async def get_ba_settings(callback: CallbackQuery, callback_data: SettingsTypeCD
         else:
             text += f"  Не привязан\n"
 
-    text += "\n<code>/set_ba_chat</code> <b>[айди или ссылка на чат]</b> - изменение чата для бана по всей сети\n<code>/set_ba_channel</code> <b>[айди или ссылка на канал]</b> - изменение канала для постов о бане по всей сети"
+    text += f"""
+<b>Пост:</b> {changeable_settings.ba_post}
+
+<b>Уведомление о бане:</b> {changeable_settings.ba_text}
+
+<b>Уведомление о разбане:</b> {changeable_settings.unba_text}\n
+"""
+
+    text += "\n<code>/set_ba_chat</code> <b>[айди или ссылка на чат]</b> - изменение чата для бана по всей сети\n<code>/set_ba_channel</code> <b>[айди или ссылка на канал]</b> - изменение канала для постов о бане по всей сети\n<i>Команды для изменения текста в <code>/commands</code></i>"
 
     await callback.message.edit_text(
         text=text, reply_markup=back_ibtn(SettingsListCD()).as_markup()

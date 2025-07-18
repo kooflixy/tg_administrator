@@ -58,3 +58,33 @@ async def set_close_text(message: Message, command: CommandObject):
     log.info(
         "Текст при попытке открыть уже откырытый чат изменен new_text=%r", command.args
     )
+
+
+@router.message(Command("set_ba_post"), IsAdminChat())
+async def set_ba_post(message: Message, command: CommandObject):
+
+    changeable_settings.ba_post = command.args
+
+    await message.answer(f"Пост в канал о бане по сети изменен на:\n{command.args}")
+
+    log.info("Пост в канал о бане по сети изменен new_text=%r", command.args)
+
+
+@router.message(Command("set_ba_text"), IsAdminChat())
+async def set_ba_text(message: Message, command: CommandObject):
+
+    changeable_settings.ba_text = command.args
+
+    await message.answer(f"Уведомление о бане по сети изменено на:\n{command.args}")
+
+    log.info("Уведомление о бане по сети изменено на new_text=%r", command.args)
+
+
+@router.message(Command("set_unba_text"), IsAdminChat())
+async def set_unba_text(message: Message, command: CommandObject):
+
+    changeable_settings.unba_text = command.args
+
+    await message.answer(f"Уведомление о разбане по сети изменено на:\n{command.args}")
+
+    log.info("Уведомление о разбане по сети изменено на new_text=%r", command.args)

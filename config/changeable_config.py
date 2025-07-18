@@ -49,12 +49,12 @@ class ChangeableSettings(BaseModel):
 
     ba_chat_id: Optional[Union[str, int]] = None
     ba_channel_id: Optional[Union[str, int]] = None
-    ba_post: str = '''<b>🌟ID:</b> {user_id}
+    ba_post: str = """<b>🌟ID:</b> {user_id}
 <b>👤Пользователь:</b> {user}
 <b>📋Причина:</b> {reason}
-{proof}'''
-    ba_text: str = 'Пользователь {user} был забанен {proof}'
-    unba_text: str = 'Пользователь {user} был разбанен {proof}'
+{proof}"""
+    ba_text: str = "Пользователь {user} был забанен {proof}"
+    unba_text: str = "Пользователь {user} был разбанен {proof}"
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"

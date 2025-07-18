@@ -70,28 +70,30 @@ async def ba_user(message: Message, command: CommandObject):
         user_str = TextMarkup.tag_user(user.name, user.id)
         if rest:
             msgs_list = list()
-            banbase_url = ''
+            banbase_url = ""
             chats_list = await ChatORMHandler.get_all(session)
-            
+
             # пост в канал
             if changeable_settings.ba_channel_id:
-                channel = await TelethonManager.get_entity(changeable_settings.ba_channel_id)
+                channel = await TelethonManager.get_entity(
+                    changeable_settings.ba_channel_id
+                )
                 if channel:
-                    banbase_url = f'https://t.me/{channel.username}'
+                    banbase_url = f"https://t.me/{channel.username}"
                     try:
                         post_msg = await bot.send_message(
                             changeable_settings.ba_channel_id,
-                            TextMarkup.get_ba_post(user.id, user.name, reason, url)
+                            TextMarkup.get_ba_post(user.id, user.name, reason, url),
                         )
                         rest.msg_id = post_msg.message_id
-                        banbase_url += f'/{post_msg.message_id}'
+                        banbase_url += f"/{post_msg.message_id}"
                     except:
                         log.exception(
                             "При попытке отправить пост о бане в канал произошла ошибка channel_id=%s user_id=%s",
                             changeable_settings.ba_channel_id,
                             user.id,
                         )
-            
+
             for chat in chats_list:
                 try:
                     await bot.ban_chat_member(chat.id, user.id)
@@ -153,15 +155,19 @@ async def unba_user(message: Message, command: CommandObject):
             )
             return
 
-        banbase_url = ''
+        banbase_url = ""
 
         # удаление поста в канале
         if changeable_settings.ba_channel_id and rest.msg_id:
-            channel = await TelethonManager.get_entity(changeable_settings.ba_channel_id)
+            channel = await TelethonManager.get_entity(
+                changeable_settings.ba_channel_id
+            )
             if channel:
-                banbase_url = f'https://t.me/{channel.username}'
+                banbase_url = f"https://t.me/{channel.username}"
                 try:
-                    await bot.delete_message(changeable_settings.ba_channel_id, rest.msg_id)
+                    await bot.delete_message(
+                        changeable_settings.ba_channel_id, rest.msg_id
+                    )
                 except:
                     log.exception(
                         "При попытке удалить пост о бане в канале произошла ошибка channel_id=%s user_id=%s",
