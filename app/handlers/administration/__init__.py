@@ -8,6 +8,7 @@ from app.handlers.administration import (
     mute,
     perm,
     warn,
+    local
 )
 
 # я не знаю, что я тут понаписал

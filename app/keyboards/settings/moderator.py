@@ -193,6 +193,7 @@ def moderator_chat_details_ikb(moderator: ModeratorChatORM, back_page: int):
     for perm_ru_name, perm_db_name, is_perm_exists in zip(
         [
             "Бан по сети чатов",
+            "Локал",
             "Бан",
             "Кик",
             "Мут",
@@ -202,6 +203,7 @@ def moderator_chat_details_ikb(moderator: ModeratorChatORM, back_page: int):
         ],
         [
             "ba_perm",
+            "local_perm",
             "ban_perm",
             "kick_perm",
             "mute_perm",
@@ -211,6 +213,7 @@ def moderator_chat_details_ikb(moderator: ModeratorChatORM, back_page: int):
         ],
         [
             moderator.ba_perm,
+            moderator.local_perm,
             moderator.ban_perm,
             moderator.kick_perm,
             moderator.mute_perm,

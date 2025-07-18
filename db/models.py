@@ -71,6 +71,7 @@ class ModeratorChatORM(Base):
 
     # Права. При добавлении или удалении одного измените инлайн-клавиатуру изменения прав модератора
     ba_perm: Mapped[permission_tp]
+    local_perm: Mapped[permission_tp]
     ban_perm: Mapped[permission_tp]
     kick_perm: Mapped[permission_tp]
     mute_perm: Mapped[permission_tp]
