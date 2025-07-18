@@ -14,6 +14,7 @@ from app.utils.contrib import (
     get_user_id_name_reason_url,
 )
 from app.utils.rest_handler import BanRestHandler, BaRestHandler
+from app.utils.telthon_manager import TelethonManager
 from app.utils.text_markup import TextMarkup
 from config import changeable_settings
 from db.database import async_session_factory
@@ -69,7 +70,28 @@ async def ba_user(message: Message, command: CommandObject):
         user_str = TextMarkup.tag_user(user.name, user.id)
         if rest:
             msgs_list = list()
+            banbase_url = ''
             chats_list = await ChatORMHandler.get_all(session)
+            
+            # пост в канал
+            if changeable_settings.ba_channel_id:
+                channel = await TelethonManager.get_entity(changeable_settings.ba_channel_id)
+                if channel:
+                    banbase_url = f'https://t.me/{channel.username}'
+                    try:
+                        post_msg = await bot.send_message(
+                            changeable_settings.ba_channel_id,
+                            TextMarkup.get_ba_post(user.id, user.name, reason, url)
+                        )
+                        rest.msg_id = post_msg.message_id
+                        banbase_url += f'/{post_msg.message_id}'
+                    except:
+                        log.exception(
+                            "При попытке отправить пост о бане в канал произошла ошибка channel_id=%s user_id=%s",
+                            changeable_settings.ba_channel_id,
+                            user.id,
+                        )
+            
             for chat in chats_list:
                 try:
                     await bot.ban_chat_member(chat.id, user.id)
@@ -82,27 +104,9 @@ async def ba_user(message: Message, command: CommandObject):
 
                 # рассылка уведомлений в чаты
                 msg: Message = await bot.send_message(
-                    chat.id, f"Пользователь {user_str} был забанен"
+                    chat.id, TextMarkup.get_ba_text(user.id, user.name, banbase_url)
                 )
                 msgs_list.append(msg)
-
-            # пост в канал
-            if changeable_settings.ba_channel_id:
-                try:
-                    post_msg = await bot.send_message(
-                        changeable_settings.ba_channel_id,
-                        f"""<b>🌟ID:</b> <code>{user.id}</code>
-<b>👤Пользователь:</b> {TextMarkup.tag_user(user.name, user.id)}
-<b>📋Причина:</b> {reason}
-<a href="{url}">доказательства</a>""",
-                    )
-                    rest.msg_id = post_msg.message_id
-                except:
-                    log.exception(
-                        "При попытке отправить пост о бане в канал произошла ошибка channel_id=%s user_id=%s",
-                        changeable_settings.ba_channel_id,
-                        user.id,
-                    )
 
             await session.commit()
             await RestChecker.reply_n_delete(
@@ -149,16 +153,21 @@ async def unba_user(message: Message, command: CommandObject):
             )
             return
 
+        banbase_url = ''
+
         # удаление поста в канале
         if changeable_settings.ba_channel_id and rest.msg_id:
-            try:
-                await bot.delete_message(changeable_settings.ba_channel_id, rest.msg_id)
-            except:
-                log.exception(
-                    "При попытке удалить пост о бане в канале произошла ошибка channel_id=%s user_id=%s",
-                    changeable_settings.ba_channel_id,
-                    user.id,
-                )
+            channel = await TelethonManager.get_entity(changeable_settings.ba_channel_id)
+            if channel:
+                banbase_url = f'https://t.me/{channel.username}'
+                try:
+                    await bot.delete_message(changeable_settings.ba_channel_id, rest.msg_id)
+                except:
+                    log.exception(
+                        "При попытке удалить пост о бане в канале произошла ошибка channel_id=%s user_id=%s",
+                        changeable_settings.ba_channel_id,
+                        user.id,
+                    )
 
         await BaRestHandler.remove(session, user.id)
 
@@ -171,7 +180,7 @@ async def unba_user(message: Message, command: CommandObject):
         msgs_list = list()
         for chat in chats_list:
             msg: Message = await bot.send_message(
-                chat.id, f"Пользователь {user_str} был разбанен"
+                chat.id, TextMarkup.get_unba_text(user.id, user.name, banbase_url)
             )
             msgs_list.append(msg)
             if chat.id in bans_chat_ids_list:
