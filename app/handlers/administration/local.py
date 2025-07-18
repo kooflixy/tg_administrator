@@ -37,7 +37,10 @@ async def local_user(message: Message, command: CommandObject):
         return
 
     # Получение пользователя
-    user = await get_user_id_name(message, command)
+    user, reason, url = await get_user_id_name_reason_url(message, command)
+
+    if not await RestChecker.is_ba_data_valid(user, reason, url, message):
+        return
 
     # Проверка на существование пользователя
     if not await RestChecker.is_user_exists(user, message):
@@ -76,6 +79,15 @@ async def local_user(message: Message, command: CommandObject):
                         chat.id,
                         user.id,
                     )
+
+            if changeable_settings.local_chat_id:
+                await bot.send_message(
+                    changeable_settings.local_chat_id,
+                    f"""<b>🌟ID:</b> <code>{user.id}</code>
+<b>👤Пользователь:</b> {TextMarkup.tag_user(user.name, user.id)}
+<b>📋Причина:</b> {reason}
+<a href="{url}">Доказательства</a>""",
+                )
 
             await session.commit()
             await RestChecker.reply_n_delete(

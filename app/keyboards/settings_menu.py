@@ -22,6 +22,7 @@ class SettingsType:
     WARN = "warn"
     LINKTO = "linkto"
     BA = "ba"
+    LOCAL = "local"
 
 
 class SettingsTypeCD(CallbackData, prefix="setts_type"):
@@ -47,8 +48,12 @@ def settings_menu_ikb():
         text="🔀Линковка", callback_data=SettingsTypeCD(type=SettingsType.LINKTO).pack()
     )
     builder.button(
-        text="😈Бан по сети чатов",
+        text="😈Ба",
         callback_data=SettingsTypeCD(type=SettingsType.BA).pack(),
+    )
+    builder.button(
+        text="🤫Локал",
+        callback_data=SettingsTypeCD(type=SettingsType.LOCAL).pack(),
     )
 
     builder.adjust(*([1] * (BTN_COUNT % 2) + [2] * (BTN_COUNT // 2)))

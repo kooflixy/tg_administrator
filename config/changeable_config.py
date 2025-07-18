@@ -56,6 +56,8 @@ class ChangeableSettings(BaseModel):
     ba_text: str = "Пользователь {user} был забанен {proof}"
     unba_text: str = "Пользователь {user} был разбанен {proof}"
 
+    local_chat_id: Optional[int] = None
+
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__dict__})"
 

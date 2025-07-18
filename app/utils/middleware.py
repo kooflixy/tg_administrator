@@ -44,6 +44,9 @@ class AntiFloodMiddleWare(BaseMiddleware):
         event: Message,
         data: Dict[str, Any],
     ):
+        if event.from_user.id == settings.ADMIN_ID:
+            return await handler(event, data)
+
         if event.from_user.id in self.limit:
             return
         else:
