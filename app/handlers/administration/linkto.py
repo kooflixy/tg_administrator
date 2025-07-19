@@ -60,7 +60,7 @@ async def linkto(message: Message, command: CommandObject):
         )
     except:
         log.exception(
-            "При попытке переслать сообщение произошла ошибкаmoderator=%s msg_url=%s reason=%r",
+            "При попытке переслать сообщение произошла ошибка moderator=%s msg_url=%s reason=%r",
             name_in_log.user(message),
             msg_url,
             reason,
