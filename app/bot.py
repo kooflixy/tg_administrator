@@ -6,6 +6,7 @@ from app.handlers import (
     administration,
     captcha,
     delete_sys_message,
+    developer,
     error,
     pagination,
     settings,
@@ -21,6 +22,8 @@ async def main():
 
     # fmt: off
     dp.include_routers(
+        developer.router,
+
         administration.ba.router,  
         administration.local.router,  
         administration.ban.router,  
