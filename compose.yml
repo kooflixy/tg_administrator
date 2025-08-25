@@ -28,8 +28,8 @@ services:
 
   app:
     build: .
-    image: admin_bot
-    container_name: tg_bot
+    image: tg_miva_admin_bot
+    container_name: tg_miva_bot
     restart: unless-stopped
     command: sh -c "while ! nc -z postgres 5432; do sleep 1; done && alembic upgrade head && python main.py"
     environment:
