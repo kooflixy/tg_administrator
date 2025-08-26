@@ -110,4 +110,4 @@ async def set_captcha_text(message: Message, state: FSMContext):
         message.text,
     )
 
-    await settings_cmd(message, None)
+    await settings_cmd(message)

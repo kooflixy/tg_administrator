@@ -7,7 +7,6 @@ def logging_configure(level=logging.INFO, filemode: Literal["a", "w"] = "a"):
         logging.WARNING
     )  # логи aiogram только с logging.WARNING
 
-
     # Создание корневого логгера
     logger = logging.getLogger()
     logger.setLevel(level)

@@ -3,6 +3,7 @@ exclude = '''
 (
     db/migrations/
   | /venv/
+  | /.venv/
 )
 '''
 
