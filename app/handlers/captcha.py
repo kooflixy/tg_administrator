@@ -71,9 +71,7 @@ async def captcha_check(event: ChatMemberUpdated):
         text=TextMarkup.get_captcha_text(
             user_full_name=new_member.full_name, user_id=new_member.id
         ),
-    )
-    await captcha_msg.edit_reply_markup(
-        reply_markup=captcha_btn_ikb(new_member.id, captcha_msg.message_id)
+        reply_markup=captcha_btn_ikb(new_member.id),
     )
     log.debug("%s было предложено пройти капчу", name_in_log.user(event))
 
@@ -153,9 +151,7 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     await bot.promote_chat_member(callback.message.chat.id, callback_data.user_id)
 
     try:
-        await bot.delete_message(
-            chat_id=callback.message.chat.id, message_id=callback_data.captcha_msg_id
-        )  # Удаляем сообщение с капчой
+        await callback.message.delete()  # Удаляем сообщение с капчой
 
         await asyncio.sleep(DELETE_MSG_TIME)
 
