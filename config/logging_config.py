@@ -7,6 +7,11 @@ def logging_configure(level=logging.INFO, filemode: Literal["a", "w"] = "a"):
         logging.WARNING
     )  # логи aiogram только с logging.WARNING
 
+    logging.getLogger("telethon").setLevel(
+        logging.WARNING
+    )  # логи telethon только с logging.WARNING
+    logging.getLogger("telethon").propagate = False
+
     # Создание корневого логгера
     logger = logging.getLogger()
     logger.setLevel(level)

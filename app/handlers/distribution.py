@@ -15,7 +15,6 @@ async def distribution():
         await session.commit()
     while True:
         try:
-            log.debug("Начало нового цикла проверки рассылки")
             await asyncio.sleep(changeable_settings.distribution_check_timeout)
 
             async with async_session_factory() as session:

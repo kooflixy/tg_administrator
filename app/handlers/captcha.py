@@ -85,6 +85,7 @@ async def captcha_check(event: ChatMemberUpdated):
 
     # Проверка, успел ли пользователь нажать на кнопку капчи. Если нет, то кикаем
     if not not_passed_captcha_users.is_captha_passed(new_member.id):
+        not_passed_captcha_users.remove(new_member.id)
         tag_user_text = TextMarkup.tag_user(
             user_full_name=new_member.full_name, user_id=new_member.id
         )
@@ -111,16 +112,18 @@ async def captcha_check(event: ChatMemberUpdated):
         captcha_not_passed_message = await event.answer(
             f"{tag_user_text} не прошел капчу, за что был {rest_str}"
         )
-        await bot.delete_message(
-            chat_id=event.chat.id, message_id=captcha_msg.message_id
-        )  # Удаляем сообщение с капчой
+        try:
+            await bot.delete_message(
+                chat_id=event.chat.id, message_id=captcha_msg.message_id
+            )  # Удаляем сообщение с капчой
 
-        await asyncio.sleep(DELETE_MSG_TIME)
-        await bot.delete_message(
-            chat_id=event.chat.id, message_id=captcha_not_passed_message.message_id
-        )  # Удаляем сообщение о непрохождении капчи
+            await asyncio.sleep(DELETE_MSG_TIME)
+            await bot.delete_message(
+                chat_id=event.chat.id, message_id=captcha_not_passed_message.message_id
+            )  # Удаляем сообщение о непрохождении капчи
+        except:
+            pass
 
-        not_passed_captcha_users.remove(new_member.id)
         log.info("%s не прошел капчу", name_in_log.user(event))
 
 
@@ -131,12 +134,15 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
         await callback.answer("Не твоё не трогай")
         return
 
+    not_passed_captcha_users.remove(callback_data.user_id)
+
     tag_user_text = TextMarkup.tag_user(
         callback.from_user.full_name, callback.from_user.id
     )
 
-    not_passed_captcha_users.remove(callback_data.user_id)
     async with async_session_factory() as session:
+        if await PassedCaptchaUserORMHandler.get(session, callback.from_user.id):
+            return
         await PassedCaptchaUserORMHandler.insert(session, callback.from_user.id)
         await session.commit()
     welcome_message = await callback.message.answer(
@@ -146,14 +152,17 @@ async def pass_captcha(callback: CallbackQuery, callback_data: CaptchaPassedCD):
     # снимает мут
     await bot.promote_chat_member(callback.message.chat.id, callback_data.user_id)
 
-    await bot.delete_message(
-        chat_id=callback.message.chat.id, message_id=callback_data.captcha_msg_id
-    )  # Удаляем сообщение с капчой
+    try:
+        await bot.delete_message(
+            chat_id=callback.message.chat.id, message_id=callback_data.captcha_msg_id
+        )  # Удаляем сообщение с капчой
 
-    await asyncio.sleep(DELETE_MSG_TIME)
+        await asyncio.sleep(DELETE_MSG_TIME)
 
-    await bot.delete_message(
-        chat_id=welcome_message.chat.id, message_id=welcome_message.message_id
-    )  # Удаляем сообщение с добро пожаловать!
+        await bot.delete_message(
+            chat_id=welcome_message.chat.id, message_id=welcome_message.message_id
+        )  # Удаляем сообщение с добро пожаловать!
+    except:
+        pass
 
     log.info("%s успешно прошел капчу", name_in_log.user(callback))
