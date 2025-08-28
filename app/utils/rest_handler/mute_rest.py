@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import delete
+from sqlalchemy import and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.utils.contrib import MUTE_FOREVER
@@ -13,30 +13,24 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
     model_cls = MuteRestORM
 
     @classmethod
-    async def get_chat_all(cls, chat_id: int) -> list[MuteRestORM]:
-        mutes_list = await super().get_chat_all(chat_id)
-        not_relevance_mute_ids_list = []
-        res = []
-        for mute in mutes_list:
-            if mute:
-                if not mute.period:
-                    res.append(mute)
-                    continue
-                if mute.created_at.replace(
-                    tzinfo=timezone.utc
-                ) + mute.period < datetime.now(tz=timezone.utc):
-                    not_relevance_mute_ids_list.append(mute.id)
-                    continue
-                res.append(mute)
-        if not_relevance_mute_ids_list:
-            async with async_session_factory() as session:
-                query = delete(cls.model_cls).filter(
-                    cls.model_cls.id.in_(not_relevance_mute_ids_list)
-                )
+    async def delete_overdue(cls) -> None:
+        current_time_utc = datetime.now(tz=timezone.utc).replace(tzinfo=None)
+        stmt = delete(cls.model_cls).filter(
+            and_(
+                cls.model_cls.period != None,
+                cls.model_cls.created_at + cls.model_cls.period < current_time_utc,
+            )
+        )
 
-                await session.execute(query)
-                await session.commit()
-        return res
+        async with async_session_factory() as session:
+            await session.execute(stmt)
+            await session.commit()
+
+    @classmethod
+    async def get_chat_all(cls, chat_id: int) -> list[MuteRestORM]:
+        await cls.delete_overdue()
+        mutes_list = await super().get_chat_all(chat_id)
+        return mutes_list
 
     @classmethod
     def _get_perm(cls, moderator: ModeratorChatORM) -> bool:
@@ -57,30 +51,10 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
 
     @classmethod
     async def _is_rest_exists(cls, session, chat_id, user_id):
-        obj = await super()._is_rest_exists(session, chat_id, user_id)
-        if obj:
-            if not obj.period:
-                return obj
-            is_unmuted = obj.created_at.replace(
-                tzinfo=timezone.utc
-            ) + obj.period < datetime.now(tz=timezone.utc)
-            if is_unmuted:
-                await MuteRestHandler.remove(session, chat_id, user_id)
-        return obj
+        await cls.delete_overdue()
 
-    @classmethod
-    async def _is_rest_exists_for_unmute(cls, session, chat_id, user_id):
         obj = await super()._is_rest_exists(session, chat_id, user_id)
-        is_unmuted = None
-        if obj:
-            if not obj.period:
-                return obj, False
-            is_unmuted = obj.created_at.replace(
-                tzinfo=timezone.utc
-            ) + obj.period < datetime.now(tz=timezone.utc)
-            if is_unmuted:
-                await MuteRestHandler.remove(session, chat_id, user_id)
-        return obj, is_unmuted
+        return obj
 
     @classmethod
     async def apply_restriction(
@@ -91,6 +65,7 @@ class MuteRestHandler(BaseRestHandler[MuteRestORM]):
         user_id: int,
         period: timedelta,
     ):
+        await cls.delete_overdue()
         a = await super().apply_restriction(
             session, moderator_id, chat_id, user_id, period=period
         )

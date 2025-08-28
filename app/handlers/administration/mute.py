@@ -137,11 +137,11 @@ async def unmute_user(message: Message, command: CommandObject):
 
     async with async_session_factory() as session:
 
-        rest, is_unmuted = await MuteRestHandler._is_rest_exists_for_unmute(
+        rest = await MuteRestHandler._is_rest_exists(
             session, chat_id=message.chat.id, user_id=user.id
         )
 
-        if not rest or is_unmuted:
+        if not rest:
             await session.commit()
             log.info(
                 "Попытка замутить незамученного moderator=%s user=%r chat_id=%s",

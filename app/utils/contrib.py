@@ -1,7 +1,7 @@
 import asyncio
 import re
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta, timezone
 from logging import getLogger
 from typing import Optional
 
@@ -32,7 +32,9 @@ units = {
 
 
 async def delete_reply_message(message: Message):
-    if message.reply_to_message:
+    if message.reply_to_message and message.reply_to_message.date + timedelta(
+        days=2
+    ) > datetime.now(tz=timezone.utc):
         await message.reply_to_message.delete()
 
 
@@ -155,8 +157,8 @@ async def get_user_id_name_period(
             return None, MUTE_FOREVER
         if not period_text:
             return user, MUTE_FOREVER
-        if not period_text.isdigit():
-            return user, None
+        # if not period_text.isdigit():
+        #     return user, None
         period = timedelta(seconds=time_text_to_seconds(period_text))
 
     return user, period
