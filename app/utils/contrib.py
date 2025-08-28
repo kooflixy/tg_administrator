@@ -31,6 +31,11 @@ units = {
 # fmt: on
 
 
+async def delete_reply_message(message: Message):
+    if message.reply_to_message:
+        await message.reply_to_message.delete()
+
+
 def time_text_to_seconds(text):
 
     if not isinstance(text, str) or not text.strip():

@@ -9,6 +9,7 @@ from app.bot_obj import bot
 from app.utils.checkers import RestChecker
 from app.utils.contrib import (
     MUTE_FOREVER,
+    delete_reply_message,
     get_user_id_name,
     get_user_id_name_period,
 )
@@ -97,6 +98,7 @@ async def mute_user(message: Message, command: CommandObject):
                 f"🔇 {TextMarkup.tag_user(user.name, user.id)} замучен {until_str}",
                 message,
             )
+            await delete_reply_message(message)
         else:
             log.info(
                 "Попытка замутить уже замученного moderator=%s user=%r chat_id=%s period=%r",
