@@ -8,3 +8,6 @@ bot = Bot(
     token=settings.TG_BOT_API_TOKEN,
     default=DefaultBotProperties(parse_mode=ParseMode.HTML),
 )
+
+if settings.PROXY_URL:
+    bot.session.proxy = settings.PROXY_URL

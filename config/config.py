@@ -1,5 +1,6 @@
 import os
 from logging import getLogger
+from typing import Optional
 
 from dotenv import load_dotenv
 from pydantic import BaseModel
@@ -30,6 +31,7 @@ class Settings(BaseModel):
     ADMIN_ID: int = int(os.getenv("ADMIN_ID"))
     DEVELOPER_ID: int = int(os.getenv("DEVELOPER_ID"))
     TG_BOT_API_TOKEN: str = os.getenv("TG_BOT_API_TOKEN")
+    PROXY_URL: str = os.getenv("PROXY_URL")
 
 
 settings = Settings()
