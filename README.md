@@ -184,23 +184,35 @@ TG Administrator предоставляет централизованную с�
 
 ## 🏗️ Архитектура проекта
 
-```text
-tg_administrator/
-├── alembic/
-├── bot/
-│   ├── handlers/
-│   ├── middlewares/
-│   ├── filters/
-│   ├── keyboards/
-│   ├── services/
-│   ├── utils/
-│   ├── database/
-│   └── states/
-├── config/
-├── migrations/
-├── main.py
-└── requirements.txt
 ```
+.
+├── app/
+│   ├── handlers/      # Обработчики сообщений и callback-запросов
+│   ├── keyboards/     # Inline и Reply клавиатуры
+│   ├── utils/         # Бизнес-логика и вспомогательные модули
+│   ├── bot.py         # Инициализация Dispatcher
+│   ├── bot_obj.py     # Создание экземпляра Bot
+│   └── time.py        # Работа со временем
+│
+├── config/            # Конфигурация приложения
+├── db/                # Работа с PostgreSQL
+│   ├── data/          # Начальные данные
+│   ├── migrations/    # Alembic миграции
+│   ├── queries/       # SQL-запросы
+│   ├── models.py      # ORM модели
+│   ├── database.py    # Подключение к БД
+│   └── data_manager.py
+│
+├── docs/              # Документация проекта
+│   ├── images/
+│   └── schemas/
+│
+├── main.py            # Точка входа
+├── Dockerfile
+├── compose.yml
+└── pyproject.toml
+```
+
 
 ---
 
