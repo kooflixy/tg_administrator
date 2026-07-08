@@ -1,7 +1,9 @@
 import typing
 from datetime import datetime, timedelta
 from logging import getLogger
+from urllib.parse import urlparse
 
+import socks
 from telethon import TelegramClient, hints
 from telethon.types import User
 
@@ -9,8 +11,37 @@ from config import settings
 
 log = getLogger(__name__)
 
+
+def get_proxy_config(proxy_url: str):
+    parsed = urlparse(proxy_url)
+
+    proxy_type = socks.SOCKS5
+    if parsed.scheme.lower() == "http":
+        proxy_type = socks.HTTP
+    elif parsed.scheme.lower() == "socks4":
+        proxy_type = socks.SOCKS4
+
+    proxy_config = (
+        proxy_type,
+        parsed.hostname,
+        parsed.port,
+        True,
+        parsed.username,
+        parsed.password,
+    )
+
+    return proxy_config
+
+
+proxy_config = None
+if settings.PROXY_URL:
+    proxy_config = get_proxy_config(settings.PROXY_URL)
+
 client = TelegramClient(
-    "ses", api_id=settings.TELETHON_API_ID, api_hash=settings.TELETHON_API_HASH
+    "ses",
+    api_id=settings.TELETHON_API_ID,
+    api_hash=settings.TELETHON_API_HASH,
+    proxy=proxy_config,
 )
 
 CACHE_TERM = timedelta(hours=8)
